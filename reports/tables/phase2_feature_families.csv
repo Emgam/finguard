@@ -1,0 +1,16 @@
+family,columns,engineered,categorical,label,anonymized
+vesta_V,339,0,0,Vesta engineered features (V1-V339),True
+identity_masked,26,0,10,Anonymized identity signals (id_XX),True
+completeness,26,25,1,Data completeness,False
+timedelta_D,15,9,0,Anonymized time-delta features (D1-D15),True
+counting_C,14,0,0,Anonymized counting features (C1-C14),True
+card,10,4,2,Card attributes,False
+device,9,8,4,Device and browser,False
+match_M,9,0,9,Match flags (M1-M9),True
+address,6,2,0,Address and distance codes,False
+email,6,4,4,Email domains,False
+entity_history,4,4,0,Proxy-entity history,False
+entity_velocity,4,4,0,Proxy-entity velocity,False
+amount,3,2,0,Amount,False
+time,2,0,0,Relative time of day,False
+product,1,0,1,Product code,False

@@ -1,0 +1,25 @@
+{
+  "rows_with_entity": 0.8868933518474617,
+  "n_entities": 199070,
+  "n_single_transaction_entities": 115513,
+  "n_multi_transaction_entities": 83557,
+  "share_of_all_rows_in_multi_entities": 0.6912876350458902,
+  "share_of_entity_rows_in_multi_entities": 0.7794484349283813,
+  "median_size_of_multi_entities": 3.0,
+  "entities_2plus_with_any_fraud": 2716,
+  "share_entirely_fraud": 0.5463917525773195,
+  "share_of_multi_entities_mixed": 0.014744425960721425,
+  "card1_groups_with_fraud_entirely_fraud": 0.035759096612296114,
+  "overlap_random": {
+    "test_rows_entity_seen_in_train": 0.670272540041191,
+    "test_frauds_entity_had_fraud_in_train": 0.47466216216216217,
+    "fraud_rate_if_entity_had_fraud": 0.6279329608938548,
+    "fraud_rate_otherwise": 0.019170510699939386
+  },
+  "overlap_time": {
+    "test_rows_entity_seen_in_train": 0.4306449724920988,
+    "test_frauds_entity_had_fraud_in_train": 0.18537074148296592,
+    "fraud_rate_if_entity_had_fraud": 0.594855305466238,
+    "fraud_rate_otherwise": 0.0288649301158621
+  }
+}

@@ -1,0 +1,11 @@
+risk,evidence,severity,rule for Phase 2
+Random train/test split,47.5% of random-split test frauds belong to an entity already labelled fraud (time split: 18.5%),critical,Time-ordered split only; report new vs known entities separately
+Entity label propagation,54.6% of multi-transaction entities with fraud are entirely fraud; only 1.5% mix labels,critical,No target encoding of entities or card codes; label-delay gap in a sensitivity run
+TransactionID as a feature,Spearman with time = 1.0000,high,Exclude
+Raw TransactionDT as a feature,Adversarial AUC 1.0: later values never occur in training,high,Exclude; derive relative hour and weekday only
+Raw D-columns,Spearman with day up to 0.12,medium,Normalise as day - D
+Statistics fitted on all data,"Frequencies, bins, medians, encoders computed over train + later rows",high,Fit every statistic on the training period only
+Whole-period entity aggregates,Entity means over all rows use future transactions,high,Compute entity features from earlier rows only (time-ordered replay)
+Imputing informative missingness,Present vs missing blocks differ up to several-fold in fraud rate (fig06),medium,NaN for trees; block indicators for linear models
+Raw version and device strings,60.6% of later browser strings unseen in training,medium,Normalise to families; monitor novelty
+Calibration and thresholds on the test month,Would make the test month part of training,high,Fit calibrator and bands on the validation month; freeze before testing

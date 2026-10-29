@@ -1,0 +1,8 @@
+{
+ "codes_as": "numeric",
+ "valid_pr_auc": {
+  "numeric": 0.6591716386514546,
+  "category": 0.6523097459912549
+ },
+ "rule": "higher validation PR-AUC; test month not used"
+}

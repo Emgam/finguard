@@ -1,0 +1,43 @@
+{
+ "local_accuracy_max_abs_error": 1.89891879998072e-09,
+ "reason_summary": {
+  "alerts": 4797,
+  "share_with_5_positive_families": 1.0,
+  "share_top1_family_readable": 0.19470502397331665,
+  "share_with_a_readable_family_in_top5": 1.0
+ },
+ "stability": {
+  "mean_pairwise_overlap": 0.9133708567854909,
+  "median_pairwise_overlap": 0.9199999999999999,
+  "share_transactions_overlap_ge_0.6": 1.0,
+  "mean_overlap_retrain_vs_main": 0.9125119866583281,
+  "top1_agreement_across_retrains": 0.7750677506775068,
+  "target": 0.6
+ },
+ "seed_spread": {
+  "pr_auc": {
+   "mean": 0.577198608442292,
+   "std": 0.002298116592988552,
+   "min": 0.5733679386073437,
+   "max": 0.5804827091167077
+  },
+  "roc_auc": {
+   "mean": 0.9069553463383762,
+   "std": 0.000778466693214269,
+   "min": 0.9057847689491588,
+   "max": 0.9080683809270245
+  },
+  "recall@1%": {
+   "mean": 0.2555666889334224,
+   "std": 0.0008294179707053798,
+   "min": 0.2545090180360721,
+   "max": 0.25684702738810955
+  },
+  "recall@5%": {
+   "mean": 0.6199621465152526,
+   "std": 0.0027495160929253723,
+   "min": 0.6169004676018705,
+   "max": 0.6239144956579826
+  }
+ }
+}

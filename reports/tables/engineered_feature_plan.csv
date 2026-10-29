@@ -1,0 +1,24 @@
+feature,family,computation,phase-1 evidence,leakage risk,available at scoring
+log_amt,transaction,log1p(TransactionAmt),skew 14.4 -> 0.49 (nb02),none,yes
+amt_decile,transaction,decile bins fitted on the training period,U-shaped fraud rate across deciles (fig07),bins fitted on all data,yes
+amt_decimals,transaction,number of non-zero decimals (0-3),almost entirely a product-C proxy (fig08); keep only if it adds lift within product,none,yes
+rel_hour,temporal,floor(TransactionDT/3600) mod 24,fraud 10.6% at relative hour 7 vs 2.3% at hour 13 (fig04),"none; clock unknown, name it 'relative'",yes
+rel_weekday,temporal,floor(TransactionDT/86400) mod 7,weak (3.1-3.7%),none,yes
+"Dn for trending D-columns (D1, D4, D6, D8, D11-D15)",temporal,floor(TransactionDT/86400) - D,"|Spearman with day| >= 0.05, up to 0.12 (inventory)",none,yes
+has_identity,identity,identity record exists,7.85% vs 2.09%; 12.3% vs 5.8% within product C (fig09),none,"yes, if identity arrives with the payment"
+"browser_family, browser_major",device,normalise id_31,60.6% of raw strings new in later period; 0% after normalising,none,yes
+os_family,device,normalise id_30,24.2% of raw strings new; 0% after normalising,none,yes
+device_brand,device,normalise DeviceInfo,13.8% of raw strings new; 0% after normalising,none,yes
+"screen_w, screen_h",device,split id_33 'WxH',readable device consistency signal,none,yes
+"email_group_P, email_group_R, email_match",identity,provider groups; P == R,R domain up to 16.5% vs 2.1% when empty (fig10),none,yes
+"freq_card1, freq_addr1, freq_email, freq_device",rarity,counts in the training period only,card1 is the strongest single feature (AUC 0.73),leaks if counted over train + later data,"yes, from history"
+entity_prev_txn,proxy entity,earlier transactions of the entity (time-ordered cumcount),"2.0% (first) to 3.7% (10+ earlier), section 2",must use earlier rows only,"yes, entity store"
+"entity_txn_24h, entity_txn_7d",proxy entity,"earlier transactions in (t - window, t)",bursts: short gaps are riskiest (section 2),must use earlier rows only,"yes, entity store"
+entity_secs_since_prev,proxy entity,t minus previous entity transaction time,"6.6% (< 1 min) vs 0.9% (> 7 days), section 2",must use earlier rows only,"yes, entity store"
+entity_amt_ratio,proxy entity,amount / mean of earlier entity amounts,"weak, 1.9-3.2%: keep only if it adds lift",must use earlier rows only,"yes, entity store"
+"entity_n_devices, entity_n_emails",proxy entity,expanding distinct count so far,identity consistency,must use earlier rows only,"yes, entity store"
+entity_age_days,proxy entity,t minus first entity transaction,newness,must use earlier rows only,"yes, entity store"
+"n_missing, block_present_k (26), missing_pattern",missingness,row missing count; one flag per block; hashed block mask,least-missing decile 10.0% fraud; blocks differ several-fold (fig06),none,yes
+FORBIDDEN: entity or card target encoding,-,mean isFraud per entity/card,labels propagate inside entities (fig15),severe,no
+FORBIDDEN: whole-period entity aggregates,-,entity means over all rows,uses future rows,high,no
+"FORBIDDEN: raw TransactionDT, TransactionID",-,-,adversarial AUC 1.0; Spearman 1.0 with time,high,no

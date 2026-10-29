@@ -1,0 +1,29 @@
+[     1s] lr: building frames
+[   267s] lr: C=0.01 valid PR-AUC=0.4482 (246s)
+[   267s] phase 2 pipeline finished
+[     0s] retrain_seed1: training
+[   691s] retrain_seed1: best_iter=2638 valid PR-AUC=0.6586 (622s)
+[   691s] retrain_seed2: training
+[  1243s] retrain_seed2: best_iter=2638 valid PR-AUC=0.6586 (475s)
+[  1243s] retrain_seed3: training
+[  1781s] retrain_seed3: best_iter=2638 valid PR-AUC=0.6549 (463s)
+[  1781s] retrain_seed4: training
+[  2326s] retrain_seed4: best_iter=2638 valid PR-AUC=0.6530 (466s)
+[  2326s] retrain_seed5: training
+[  2862s] retrain_seed5: best_iter=2638 valid PR-AUC=0.6583 (462s)
+[  2862s] phase 2 pipeline finished
+[     2s] shap: main model on 4797 alerted + 5000 sampled test rows
+[   719s] shap: retrain seed 1
+[  1068s] shap: retrain seed 2
+[  1416s] shap: retrain seed 3
+[  1765s] shap: retrain seed 4
+[  2113s] shap: retrain seed 5
+[  2464s] shap: done
+[  2464s] phase 2 pipeline finished
+[    12s] gap_numeric: training
+[   563s] gap_numeric: best_iter=2934 valid PR-AUC=0.5609 (467s)
+[   563s] phase 2 pipeline finished
+[     0s] ablation_no_entity: training
+[   405s] ablation_no_entity: best_iter=1938 valid PR-AUC=0.6569 (348s)
+[   405s] phase 2 pipeline finished
+ALL_STAGES_DONE

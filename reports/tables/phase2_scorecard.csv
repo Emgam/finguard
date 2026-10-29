@@ -1,0 +1,14 @@
+metric,reference,phase2,ci95,better,status
+"PR-AUC, main model",0.546,0.5804827091167077,0.562-0.597,higher,met
+"PR-AUC, logistic regression",0.445,0.41938132115972526,0.400-0.438,higher,below reference
+"ROC-AUC, main model",0.899,0.9068308467420877,0.900-0.913,higher,met
+Precision at top 1%,0.902,0.892271662763466,0.873-0.915,higher,within 95% interval of reference
+Recall at top 1%,0.257,0.2545090180360721,0.245-0.264,higher,within 95% interval of reference
+Precision at top 5%,0.405,0.43726591760299627,0.421-0.454,higher,met
+Recall at top 5%,0.578,0.6239144956579826,0.609-0.641,higher,met
+ECE after isotonic calibration,0.004,0.004086095634030508,,lower,equal at reported precision
+High-band fraud rate (test),0.906,0.9005037783375315,0.878-0.919,higher,within 95% interval of reference
+Medium-band fraud rate (test),0.267,0.30652010991756184,0.292-0.321,higher,met
+Low-band fraud rate (test),0.015,0.013046767452531843,0.012-0.014,lower,met
+"Top-5 family overlap, 5 retrains",0.6,0.9133708567854909,,higher,met
+Brier score: calibrated below uncalibrated,0.0221321448688862,0.020823114106381088,,lower,met

@@ -1,0 +1,34 @@
+TransactionID 3550979 | band High | calibrated fraud probability 91% | label (not shown to the model) fraud
+  1. Anonymized counting features (C1-C14): meaning not disclosed by the data provider. [+6.81 log-odds]
+  2. Vesta engineered features (V1-V339): meaning not disclosed by the data provider. [+4.89 log-odds]
+  3. Anonymized identity signals (id_XX): meaning not disclosed by the data provider. [+0.77 log-odds]
+  4. Card attributes: network visa, type credit; card1 code seen 76 time(s) in the training window (card codes are undisclosed). [+0.67 log-odds]
+  5. Address and distance codes: billing-region code, country code, distance field not given (undisclosed codes). [+0.53 log-odds]
+
+TransactionID 3548165 | band High | calibrated fraud probability >99% | label (not shown to the model) fraud
+  1. Vesta engineered features (V1-V339): meaning not disclosed by the data provider. [+7.30 log-odds]
+  2. Anonymized counting features (C1-C14): meaning not disclosed by the data provider. [+6.01 log-odds]
+  3. Card attributes: network mastercard, type credit; card1 code seen 129 time(s) in the training window (card codes are undisclosed). [+1.54 log-odds]
+  4. Email domains: purchaser gmail.com, recipient gmail.com. [+0.84 log-odds]
+  5. Anonymized time-delta features (D1-D15): meaning not disclosed by the data provider. [+0.81 log-odds]
+
+TransactionID 3562719 | band High | calibrated fraud probability 91% | label (not shown to the model) fraud
+  1. Vesta engineered features (V1-V339): meaning not disclosed by the data provider. [+8.13 log-odds]
+  2. Anonymized counting features (C1-C14): meaning not disclosed by the data provider. [+2.48 log-odds]
+  3. Card attributes: network mastercard, type credit; card1 code seen 20 time(s) in the training window (card codes are undisclosed). [+0.90 log-odds]
+  4. Email domains: purchaser gmail.com, recipient gmail.com. [+0.86 log-odds]
+  5. Address and distance codes: billing-region code, country code, distance field not given (undisclosed codes). [+0.80 log-odds]
+
+TransactionID 3549159 | band Medium | calibrated fraud probability 20% | label (not shown to the model) legitimate
+  1. Vesta engineered features (V1-V339): meaning not disclosed by the data provider. [+1.84 log-odds]
+  2. Anonymized counting features (C1-C14): meaning not disclosed by the data provider. [+1.61 log-odds]
+  3. Relative time of day: relative hour 10 (the real clock time and time zone are not disclosed). [+0.71 log-odds]
+  4. Amount: 226.00 (0 non-zero decimal place(s)). [+0.60 log-odds]
+  5. Address and distance codes: billing-region code 269, country code 87; distance field not given (undisclosed codes). [+0.59 log-odds]
+
+TransactionID 3505149 | band Medium | calibrated fraud probability 27% | label (not shown to the model) legitimate
+  1. Anonymized time-delta features (D1-D15): meaning not disclosed by the data provider. [+2.44 log-odds]
+  2. Amount: 308.50 (1 non-zero decimal place(s)). [+1.77 log-odds]
+  3. Match flags (M1-M9) (meaning not disclosed): M4 not given, M5 not given, M6=F. [+0.90 log-odds]
+  4. Data completeness: 234 empty fields; identity record absent. [+0.51 log-odds]
+  5. Address and distance codes: billing-region code 299, country code 87; distance field not given (undisclosed codes). [+0.31 log-odds]

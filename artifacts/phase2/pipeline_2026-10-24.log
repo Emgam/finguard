@@ -1,0 +1,10 @@
+[     0s] features main/numeric
+[    23s] features main/category
+[    44s] lgbm_numeric: training
+[   814s] lgbm_numeric: best_iter=2638 valid PR-AUC=0.6592 (711s)
+[   814s] lgbm_category: training
+[  1147s] lgbm_category: best_iter=1015 valid PR-AUC=0.6523 (307s)
+[  1147s] select: codes_as=numeric {'numeric': 0.6591716386514546, 'category': 0.6523097459912549}
+[  1148s] lr: building frames
+[  1326s] lr: C=0.01 valid PR-AUC=0.4482 (174s)
+[  1326s] retrain_seed1: training

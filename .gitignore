@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Data — both possible locations
+data/raw/*
+!data/raw/.gitkeep
+data/interim/*
+!data/interim/.gitkeep
+data/processed/
+data/corpus/index/
+data/corpus/incoming/
+src/finguard/data/raw/
+src/finguard/data/interim/
+src/finguard/data/processed/
+
+# Big files
+*.csv
+*.parquet
+*.zip
+*.tar.gz
+*.pkl
+*.joblib
+*.npz
+*.h5
+*.model
+
+# Model artefacts (some kept)
+artifacts/**/model.txt
+artifacts/**/*.npz
+artifacts/**/*.pkl
+artifacts/**/*.joblib
+
+# Env / secrets
+.env
+.env.*
+*.key
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,59 @@
+{
+  "cell_missing_rate": 0.4528304955351599,
+  "missing_buckets": {
+    "0%": 18,
+    "(0-10%]": 92,
+    "(10-50%]": 108,
+    "(50-75%]": 6,
+    "(75-90%]": 196,
+    "(90-99%]": 3,
+    ">99%": 9
+  },
+  "n_blocks": 26,
+  "cols_in_blocks": 371,
+  "fraud_with_identity": 0.07847025299342036,
+  "fraud_without_identity": 0.020938501972857248,
+  "share_of_fraud_with_identity": 0.5477423413831486,
+  "fraud_rate_least_missing_decile": 0.0998,
+  "product": {
+    "C": {
+      "n": 68519,
+      "rate": 0.11687,
+      "share_of_fraud": 0.38755263030537673
+    },
+    "H": {
+      "n": 33024,
+      "rate": 0.04766,
+      "share_of_fraud": 0.0761748052073755
+    },
+    "R": {
+      "n": 37699,
+      "rate": 0.03783,
+      "share_of_fraud": 0.06901224410782558
+    },
+    "S": {
+      "n": 11628,
+      "rate": 0.059,
+      "share_of_fraud": 0.03319943861007598
+    },
+    "W": {
+      "n": 439670,
+      "rate": 0.0204,
+      "share_of_fraud": 0.43406088176934615
+    }
+  },
+  "amount": {
+    "auc": 0.4975250536642422,
+    "skew": 14.374489573829827,
+    "skew_log": 0.48829099714653196,
+    "median_fraud": 75.0,
+    "median_legit": 68.5,
+    "p99": 1104.0,
+    "max": 31937.391
+  },
+  "three_decimal_share_product_C": 0.999967707038251,
+  "product_C_identity": {
+    "with": 0.1228,
+    "without": 0.0582
+  }
+}

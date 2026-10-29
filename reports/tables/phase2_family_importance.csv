@@ -1,0 +1,16 @@
+family,label,share,anonymized
+card,Card attributes,0.1406388183597069,False
+timedelta_D,Anonymized time-delta features (D1-D15),0.134563758643324,True
+vesta_V,Vesta engineered features (V1-V339),0.13122090269724626,True
+counting_C,Anonymized counting features (C1-C14),0.13102884125064157,True
+amount,Amount,0.09390035543494472,False
+address,Address and distance codes,0.06614263550433586,False
+email,Email domains,0.06335469462838433,False
+match_M,Match flags (M1-M9),0.038635093334380005,True
+completeness,Data completeness,0.037373347496540595,False
+identity_masked,Anonymized identity signals (id_XX),0.03373330391058241,True
+time,Relative time of day,0.03170242118716044,False
+entity_history,Proxy-entity history,0.028858904142186302,False
+device,Device and browser,0.026141841465989687,False
+entity_velocity,Proxy-entity velocity,0.023734270938956834,False
+product,Product code,0.018970811005620286,False

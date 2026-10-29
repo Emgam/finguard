@@ -1,0 +1,433 @@
+,group,dtype,n_unique,missing_train,missing_test,signal_strength,half_period_shift,drift_adversarial_auc,redundant_with,d_spearman_with_day,interpretability,recommended_treatment,use_in_model,use_in_explanations,note,monitor_drift
+TransactionDT,TransactionDT,numeric,573349,0.0,0.0,,,1.0,,,readable,"exclude raw; derive rel_hour, rel_weekday, day for splits and velocity",no (derive only),yes,test values lie outside the training range (adversarial AUC 1.0),True
+TransactionAmt,TransactionAmt,numeric,20902,0.0,0.0,0.5025,0.0073,0.5065,,,readable,keep raw for trees; log1p for linear models; decimals only if they add lift within product,yes,yes,skew 14,False
+ProductCD,ProductCD,text,5,0.0,0.0,0.6946,,0.5157,,,code (values undisclosed),categorical; missing as its own category,yes,"partial (category, no meaning)",,False
+card1,card1-6,numeric code,13553,0.0,0.0,0.7303,,0.5027,,,code (values undisclosed),categorical code: native categorical / frequency (training period only),yes,"partial (category, no meaning)",numeric value has no order meaning,False
+card2,card1-6,numeric code,500,0.0151,0.0171,0.7216,,0.5022,,,code (values undisclosed),categorical code: native categorical / frequency (training period only),yes,"partial (category, no meaning)",numeric value has no order meaning,False
+card3,card1-6,numeric code,114,0.0027,0.0059,0.6566,,0.5031,,,code (values undisclosed),categorical code: native categorical / frequency (training period only),yes,"partial (category, no meaning)",numeric value has no order meaning,False
+card4,card1-6,text,4,0.0027,0.0061,0.5048,,0.5044,,,readable,categorical; missing as its own category,yes,yes,,False
+card5,card1-6,numeric code,119,0.0072,0.009,0.6551,,0.5045,,,code (values undisclosed),categorical code: native categorical / frequency (training period only),yes,"partial (category, no meaning)",numeric value has no order meaning,False
+card6,card1-6,text,4,0.0027,0.0059,0.6184,,0.507,,,readable,categorical; missing as its own category,yes,yes,,False
+addr1,addr1-2,numeric code,332,0.1113,0.1295,0.6811,,0.5083,,,code (values undisclosed),categorical code: native categorical / frequency (training period only),yes,"partial (category, no meaning)",numeric value has no order meaning,False
+addr2,addr1-2,numeric code,74,0.1113,0.1295,0.6594,,0.5109,,,code (values undisclosed),categorical code: native categorical / frequency (training period only),yes,"partial (category, no meaning)",numeric value has no order meaning,False
+dist1,dist1-2,numeric,2651,0.5965,0.5747,0.5858,0.0109,0.5068,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+dist2,dist1-2,numeric,1751,0.9363,0.9281,0.5604,0.0028,0.5042,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+P_emaildomain,email,text,59,0.1599,0.1366,0.5959,,0.5073,,,readable,normalise: email provider group (keep raw domain for trees); missing as its own category,"yes, transformed",yes,raw strings drift (new versions/devices),False
+R_emaildomain,email,text,60,0.7675,0.7318,0.7,,0.5176,,,readable,normalise: email provider group (keep raw domain for trees); missing as its own category,"yes, transformed",yes,raw strings drift (new versions/devices),False
+C1,C1-14,numeric,1657,0.0,0.0,0.6131,0.0346,0.507,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+C2,C1-14,numeric,1216,0.0,0.0,0.6289,0.0302,0.5025,C1,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with C1),trees only,family level only,near-duplicate,False
+C3,C1-14,numeric,27,0.0,0.0,0.502,0.0011,0.5105,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+C4,C1-14,numeric,1260,0.0,0.0,0.6877,0.0094,0.5168,C1,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with C1),trees only,family level only,near-duplicate,False
+C5,C1-14,numeric,319,0.0,0.0,0.6424,0.0179,0.5146,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+C6,C1-14,numeric,1328,0.0,0.0,0.5732,0.0387,0.503,C1,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with C1),trees only,family level only,near-duplicate,False
+C7,C1-14,numeric,1103,0.0,0.0,0.6474,0.0142,0.5113,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+C8,C1-14,numeric,1253,0.0,0.0,0.6832,0.0195,0.5166,C1,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with C1),trees only,family level only,near-duplicate,False
+C9,C1-14,numeric,205,0.0,0.0,0.64,0.053,0.5021,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+C10,C1-14,numeric,1231,0.0,0.0,0.6779,0.0213,0.5199,C1,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with C1),trees only,family level only,near-duplicate,False
+C11,C1-14,numeric,1476,0.0,0.0,0.6045,0.0314,0.5155,C1,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with C1),trees only,family level only,near-duplicate,False
+C12,C1-14,numeric,1199,0.0,0.0,0.6635,0.0284,0.5512,C7,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with C7),trees only,family level only,near-duplicate,False
+C13,C1-14,numeric,1597,0.0,0.0094,0.6155,0.0338,0.5039,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+C14,C1-14,numeric,1108,0.0,0.0,0.5895,0.0202,0.5114,C1,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with C1),trees only,family level only,near-duplicate,False
+D1,D1-15,numeric,641,0.0021,0.0119,0.5946,0.0415,0.5087,,0.098,masked,normalise: floor(DT/86400) - D; keep NaN,"yes, transformed",family level only,trends with time (Spearman +0.10),False
+D2,D1-15,numeric,641,0.4755,0.4633,0.6156,0.038,0.51,,0.015,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+D3,D1-15,numeric,649,0.4451,0.4009,0.5985,0.0349,0.5189,,-0.008,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+D4,D1-15,numeric,808,0.286,0.1517,0.5499,0.0482,0.5736,,0.053,masked,normalise: floor(DT/86400) - D; keep NaN,"yes, transformed",family level only,trends with time (Spearman +0.05),False
+D5,D1-15,numeric,688,0.5247,0.4428,0.5346,0.0401,0.5384,,0.009,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+D6,D1-15,numeric,829,0.8761,0.7537,0.63,0.015,0.561,,0.115,masked,normalise: floor(DT/86400) - D; keep NaN,"yes, transformed",family level only,trends with time (Spearman +0.12),False
+D7,D1-15,numeric,597,0.9341,0.8813,0.6086,0.012,0.5263,,-0.037,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+D8,D1-15,numeric,12353,0.8731,0.8533,0.6222,0.0236,0.5108,,-0.072,masked,normalise: floor(DT/86400) - D; keep NaN,"yes, transformed",family level only,trends with time (Spearman -0.07),False
+D9,D1-15,numeric,24,0.8731,0.8533,0.6295,0.0206,0.5105,,-0.03,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+D10,D1-15,numeric,818,0.1287,0.0248,0.6259,0.0592,0.5588,,0.048,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+D11,D1-15,numeric,676,0.4729,0.3484,0.631,0.0911,0.5873,,0.1,masked,normalise: floor(DT/86400) - D; keep NaN,"yes, transformed",family level only,trends with time (Spearman +0.10),False
+D12,D1-15,numeric,635,0.8904,0.8633,0.6353,0.0107,0.5146,,0.072,masked,normalise: floor(DT/86400) - D; keep NaN,"yes, transformed",family level only,trends with time (Spearman +0.07),False
+D13,D1-15,numeric,577,0.8951,0.7565,0.6167,0.0164,0.5694,,0.123,masked,normalise: floor(DT/86400) - D; keep NaN,"yes, transformed",family level only,trends with time (Spearman +0.12),False
+D14,D1-15,numeric,802,0.8947,0.7727,0.628,0.0117,0.5609,,0.106,masked,normalise: floor(DT/86400) - D; keep NaN,"yes, transformed",family level only,trends with time (Spearman +0.11),False
+D15,D1-15,numeric,859,0.1509,0.0238,0.6154,0.0523,0.5755,,0.065,masked,normalise: floor(DT/86400) - D; keep NaN,"yes, transformed",family level only,trends with time (Spearman +0.07),False
+M1,M1-9,text,2,0.4591,0.3486,0.669,,0.5552,,,masked,categorical; missing as its own category,yes,family level only,,False
+M2,M1-9,text,2,0.4591,0.3486,0.6793,,0.5544,,,masked,categorical; missing as its own category,yes,family level only,,False
+M3,M1-9,text,2,0.4591,0.3486,0.6815,,0.5412,,,masked,categorical; missing as its own category,yes,family level only,,False
+M4,M1-9,text,3,0.4766,0.4692,0.6821,,0.5072,,,masked,categorical; missing as its own category,yes,family level only,,False
+M5,M1-9,text,2,0.5935,0.6111,0.5232,,0.5087,,,masked,categorical; missing as its own category,yes,family level only,,False
+M6,M1-9,text,2,0.2868,0.3137,0.6892,,0.5104,,,masked,categorical; missing as its own category,yes,family level only,,False
+M7,M1-9,text,2,0.5864,0.4638,0.6415,,0.5625,,,masked,categorical; missing as its own category,yes,family level only,,False
+M8,M1-9,text,2,0.5863,0.4638,0.6464,,0.5636,,,masked,categorical; missing as its own category,yes,family level only,,False
+M9,M1-9,text,2,0.5863,0.4638,0.6469,,0.5583,,,masked,categorical; missing as its own category,yes,family level only,,False
+V1,V1-339,numeric,2,0.4729,0.3484,0.62,0.0748,0.5621,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V2,V1-339,numeric,9,0.4729,0.3484,0.618,0.0731,0.5621,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V3,V1-339,numeric,10,0.4729,0.3484,0.6139,0.0703,0.5627,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V4,V1-339,numeric,7,0.4729,0.3484,0.6177,0.0753,0.5628,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V5,V1-339,numeric,7,0.4729,0.3484,0.6139,0.0727,0.563,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V6,V1-339,numeric,10,0.4729,0.3484,0.6189,0.0745,0.5621,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V7,V1-339,numeric,10,0.4729,0.3484,0.6168,0.0731,0.5627,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V8,V1-339,numeric,9,0.4729,0.3484,0.6187,0.0732,0.5613,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V9,V1-339,numeric,9,0.4729,0.3484,0.6157,0.0706,0.5618,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V10,V1-339,numeric,5,0.4729,0.3484,0.642,0.099,0.561,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V11,V1-339,numeric,6,0.4729,0.3484,0.6419,0.0988,0.5611,V10,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V10),trees only,family level only,near-duplicate,False
+V12,V1-339,numeric,4,0.1288,0.0248,0.5874,0.049,0.5563,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V13,V1-339,numeric,7,0.1288,0.0248,0.5853,0.0495,0.5522,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V14,V1-339,numeric,2,0.1288,0.0248,0.5306,0.0166,0.5517,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V15,V1-339,numeric,8,0.1288,0.0248,0.5852,0.0146,0.5597,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V16,V1-339,numeric,15,0.1288,0.0248,0.5852,0.0145,0.5597,V15,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V15),trees only,family level only,near-duplicate,False
+V17,V1-339,numeric,16,0.1288,0.0248,0.5828,0.0203,0.6046,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,True
+V18,V1-339,numeric,16,0.1288,0.0248,0.5829,0.02,0.6045,V17,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V17),trees only,family level only,near-duplicate,True
+V19,V1-339,numeric,8,0.1288,0.0248,0.5073,0.0148,0.5704,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V20,V1-339,numeric,15,0.1288,0.0248,0.5025,0.013,0.5673,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V21,V1-339,numeric,6,0.1288,0.0248,0.5808,0.0192,0.6026,V17,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V17),trees only,family level only,near-duplicate,True
+V22,V1-339,numeric,9,0.1288,0.0248,0.5808,0.0189,0.6026,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,True
+V23,V1-339,numeric,14,0.1288,0.0248,0.5024,0.0045,0.555,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V24,V1-339,numeric,14,0.1288,0.0248,0.5027,0.0079,0.5541,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V25,V1-339,numeric,7,0.1288,0.0248,0.53,0.0196,0.5626,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V26,V1-339,numeric,13,0.1288,0.0248,0.5258,0.0189,0.5617,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V27,V1-339,numeric,4,0.1288,0.0248,0.531,0.0167,0.5607,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V28,V1-339,numeric,4,0.1288,0.0248,0.531,0.0167,0.5607,V27,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V27),trees only,family level only,near-duplicate,False
+V29,V1-339,numeric,6,0.1288,0.0248,0.6385,0.038,0.5311,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V30,V1-339,numeric,8,0.1288,0.0248,0.6385,0.0361,0.5307,V29,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V29),trees only,family level only,near-duplicate,False
+V31,V1-339,numeric,8,0.1288,0.0248,0.5832,0.0146,0.5999,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V32,V1-339,numeric,15,0.1288,0.0248,0.5832,0.0143,0.5999,V31,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V31),trees only,family level only,near-duplicate,False
+V33,V1-339,numeric,7,0.1288,0.0248,0.5918,0.0208,0.5621,V15,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V15),trees only,family level only,near-duplicate,False
+V34,V1-339,numeric,13,0.1288,0.0248,0.5943,0.024,0.5647,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V35,V1-339,numeric,4,0.2861,0.1517,0.559,0.0573,0.5677,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V36,V1-339,numeric,6,0.2861,0.1517,0.5572,0.0613,0.5652,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V37,V1-339,numeric,55,0.2861,0.1517,0.5473,0.0155,0.5684,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V38,V1-339,numeric,55,0.2861,0.1517,0.5596,0.0168,0.569,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V39,V1-339,numeric,16,0.2861,0.1517,0.5884,0.0025,0.6042,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,True
+V40,V1-339,numeric,18,0.2861,0.1517,0.5896,0.0017,0.6042,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,True
+V41,V1-339,numeric,2,0.2861,0.1517,0.5045,0.0277,0.5674,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V42,V1-339,numeric,9,0.2861,0.1517,0.5855,0.004,0.603,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,True
+V43,V1-339,numeric,9,0.2861,0.1517,0.5868,0.0036,0.603,V42,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V42),trees only,family level only,near-duplicate,True
+V44,V1-339,numeric,49,0.2861,0.1517,0.557,0.0103,0.5677,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V45,V1-339,numeric,49,0.2861,0.1517,0.5652,0.01,0.5676,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V46,V1-339,numeric,7,0.2861,0.1517,0.5162,0.0241,0.5667,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V47,V1-339,numeric,9,0.2861,0.1517,0.5285,0.0256,0.5666,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V48,V1-339,numeric,6,0.2861,0.1517,0.5841,0.047,0.5513,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V49,V1-339,numeric,6,0.2861,0.1517,0.5839,0.0465,0.5512,V48,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V48),trees only,family level only,near-duplicate,False
+V50,V1-339,numeric,6,0.2861,0.1517,0.5881,0.0005,0.5996,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V51,V1-339,numeric,7,0.2861,0.1517,0.5952,0.0009,0.5715,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V52,V1-339,numeric,9,0.2861,0.1517,0.5974,0.0004,0.5732,V51,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V51),trees only,family level only,near-duplicate,False
+V53,V1-339,numeric,6,0.1306,0.0255,0.5966,0.0493,0.5627,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V54,V1-339,numeric,7,0.1306,0.0255,0.5921,0.052,0.557,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V55,V1-339,numeric,18,0.1306,0.0255,0.5172,0.003,0.5562,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V56,V1-339,numeric,52,0.1306,0.0255,0.5026,0.0092,0.5584,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V57,V1-339,numeric,7,0.1306,0.0255,0.5593,0.0067,0.5592,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V58,V1-339,numeric,11,0.1306,0.0255,0.5606,0.0059,0.559,V57,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V57),trees only,family level only,near-duplicate,False
+V59,V1-339,numeric,17,0.1306,0.0255,0.5547,0.0109,0.6064,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,True
+V60,V1-339,numeric,17,0.1306,0.0255,0.5563,0.0103,0.6062,V59,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V59),trees only,family level only,near-duplicate,True
+V61,V1-339,numeric,7,0.1306,0.0255,0.5108,0.0232,0.5728,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V62,V1-339,numeric,11,0.1306,0.0255,0.5007,0.023,0.57,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V63,V1-339,numeric,8,0.1306,0.0255,0.5533,0.0106,0.6045,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,True
+V64,V1-339,numeric,8,0.1306,0.0255,0.5547,0.0098,0.6044,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,True
+V65,V1-339,numeric,2,0.1306,0.0255,0.5453,0.0186,0.5523,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V66,V1-339,numeric,8,0.1306,0.0255,0.5328,0.0197,0.5655,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V67,V1-339,numeric,9,0.1306,0.0255,0.5177,0.0235,0.565,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V68,V1-339,numeric,3,0.1306,0.0255,0.5456,0.0187,0.5617,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V69,V1-339,numeric,6,0.1306,0.0255,0.6484,0.0386,0.5316,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V70,V1-339,numeric,7,0.1306,0.0255,0.649,0.0385,0.5312,V69,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V69),trees only,family level only,near-duplicate,False
+V71,V1-339,numeric,7,0.1306,0.0255,0.5561,0.0072,0.6013,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,True
+V72,V1-339,numeric,11,0.1306,0.0255,0.5574,0.0065,0.6012,V71,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V71),trees only,family level only,near-duplicate,True
+V73,V1-339,numeric,8,0.1306,0.0255,0.5656,0.0138,0.5611,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V74,V1-339,numeric,9,0.1306,0.0255,0.5711,0.0185,0.5654,V73,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V73),trees only,family level only,near-duplicate,False
+V75,V1-339,numeric,5,0.151,0.0238,0.5829,0.0571,0.5612,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V76,V1-339,numeric,7,0.151,0.0238,0.5824,0.0588,0.5575,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V77,V1-339,numeric,31,0.151,0.0238,0.5264,0.0066,0.5673,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V78,V1-339,numeric,32,0.151,0.0238,0.5372,0.0094,0.5682,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V79,V1-339,numeric,8,0.151,0.0238,0.5892,0.0024,0.5681,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V80,V1-339,numeric,20,0.151,0.0238,0.5827,0.0078,0.6137,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,True
+V81,V1-339,numeric,20,0.151,0.0238,0.5837,0.0065,0.6136,V80,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V80),trees only,family level only,near-duplicate,True
+V82,V1-339,numeric,8,0.151,0.0238,0.5045,0.0252,0.5713,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V83,V1-339,numeric,8,0.151,0.0238,0.5146,0.0247,0.5691,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V84,V1-339,numeric,8,0.151,0.0238,0.5804,0.0071,0.612,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,True
+V85,V1-339,numeric,8,0.151,0.0238,0.5814,0.0056,0.612,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,True
+V86,V1-339,numeric,31,0.151,0.0238,0.5416,0.0011,0.5658,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V87,V1-339,numeric,31,0.151,0.0238,0.5502,0.0051,0.5651,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V88,V1-339,numeric,2,0.151,0.0238,0.529,0.022,0.5632,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V89,V1-339,numeric,3,0.151,0.0238,0.5293,0.0217,0.5719,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V90,V1-339,numeric,6,0.151,0.0238,0.635,0.0396,0.5389,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V91,V1-339,numeric,7,0.151,0.0238,0.6352,0.0391,0.539,V90,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V90),trees only,family level only,near-duplicate,False
+V92,V1-339,numeric,8,0.151,0.0238,0.5864,0.0056,0.6076,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,True
+V93,V1-339,numeric,8,0.151,0.0238,0.5872,0.0053,0.6075,V92,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V92),trees only,family level only,near-duplicate,True
+V94,V1-339,numeric,3,0.151,0.0238,0.594,0.0084,0.5699,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V95,V1-339,numeric,881,0.0005,0.0,0.5842,0.0029,0.5025,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V96,V1-339,numeric,1410,0.0005,0.0,0.5296,0.0188,0.5076,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V97,V1-339,numeric,976,0.0005,0.0,0.582,0.0068,0.505,V96,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V96),trees only,family level only,near-duplicate,False
+V98,V1-339,numeric,13,0.0005,0.0,0.5168,0.0025,0.5016,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V99,V1-339,numeric,89,0.0005,0.0,0.5383,0.0145,0.5034,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V100,V1-339,numeric,29,0.0005,0.0,0.516,0.0061,0.5004,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V101,V1-339,numeric,870,0.0005,0.0,0.5723,0.0028,0.5027,V95,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V95),trees only,family level only,near-duplicate,False
+V102,V1-339,numeric,1285,0.0005,0.0,0.5895,0.0087,0.5062,V96,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V96),trees only,family level only,near-duplicate,False
+V103,V1-339,numeric,928,0.0005,0.0,0.5849,0.0086,0.5039,V96,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V96),trees only,family level only,near-duplicate,False
+V104,V1-339,numeric,16,0.0005,0.0,0.5105,0.0034,0.505,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V105,V1-339,numeric,100,0.0005,0.0,0.5154,0.0014,0.5092,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V106,V1-339,numeric,56,0.0005,0.0,0.5148,0.0013,0.506,V105,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V105),trees only,family level only,near-duplicate,False
+V107,V1-339,numeric,2,0.0005,0.0,0.5,0.0,0.5005,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V108,V1-339,numeric,8,0.0005,0.0,0.5163,0.0002,0.5013,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V109,V1-339,numeric,8,0.0005,0.0,0.5161,0.0015,0.5029,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V110,V1-339,numeric,8,0.0005,0.0,0.5166,0.0002,0.5016,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V111,V1-339,numeric,10,0.0005,0.0,0.5173,0.0029,0.5011,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V112,V1-339,numeric,10,0.0005,0.0,0.5181,0.0031,0.5015,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V113,V1-339,numeric,10,0.0005,0.0,0.5174,0.0027,0.5012,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V114,V1-339,numeric,7,0.0005,0.0,0.5209,0.0063,0.5021,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V115,V1-339,numeric,7,0.0005,0.0,0.5209,0.0046,0.5046,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V116,V1-339,numeric,7,0.0005,0.0,0.522,0.0065,0.5027,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V117,V1-339,numeric,4,0.0005,0.0,0.5046,0.0027,0.5006,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V118,V1-339,numeric,4,0.0005,0.0,0.5044,0.0021,0.5006,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V119,V1-339,numeric,4,0.0005,0.0,0.5046,0.0026,0.5006,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V120,V1-339,numeric,4,0.0005,0.0,0.5019,0.0023,0.5007,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V121,V1-339,numeric,4,0.0005,0.0,0.502,0.0015,0.5013,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V122,V1-339,numeric,4,0.0005,0.0,0.5022,0.002,0.5008,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V123,V1-339,numeric,14,0.0005,0.0,0.5405,0.0018,0.503,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V124,V1-339,numeric,14,0.0005,0.0,0.5339,0.0045,0.5055,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V125,V1-339,numeric,14,0.0005,0.0,0.5403,0.0014,0.5026,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V126,V1-339,numeric,10299,0.0005,0.0,0.5824,0.0035,0.5026,V95,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V95),trees only,family level only,near-duplicate,False
+V127,V1-339,numeric,24414,0.0005,0.0,0.5304,0.018,0.5078,V96,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V96),trees only,family level only,near-duplicate,False
+V128,V1-339,numeric,14507,0.0005,0.0,0.5801,0.0067,0.5051,V96,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V96),trees only,family level only,near-duplicate,False
+V129,V1-339,numeric,1968,0.0005,0.0,0.5171,0.0026,0.5016,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V130,V1-339,numeric,12332,0.0005,0.0,0.5326,0.0115,0.5035,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V131,V1-339,numeric,4444,0.0005,0.0,0.518,0.005,0.5005,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V132,V1-339,numeric,6560,0.0005,0.0,0.5717,0.0027,0.5028,V95,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V95),trees only,family level only,near-duplicate,False
+V133,V1-339,numeric,9949,0.0005,0.0,0.5887,0.0082,0.5062,V96,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V96),trees only,family level only,near-duplicate,False
+V134,V1-339,numeric,8178,0.0005,0.0,0.5842,0.0083,0.5039,V96,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V96),trees only,family level only,near-duplicate,False
+V135,V1-339,numeric,3724,0.0005,0.0,0.5104,0.0035,0.5051,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V136,V1-339,numeric,4852,0.0005,0.0,0.5154,0.0013,0.5092,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V137,V1-339,numeric,4252,0.0005,0.0,0.5148,0.0014,0.5061,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V138,V1-339,numeric,23,0.8612,0.8504,0.5201,0.0198,0.5056,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V139,V1-339,numeric,34,0.8612,0.8504,0.5235,0.0151,0.5055,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V140,V1-339,numeric,34,0.8612,0.8504,0.5239,0.014,0.5055,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V141,V1-339,numeric,6,0.8612,0.8504,0.5205,0.019,0.5056,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V142,V1-339,numeric,10,0.8612,0.8504,0.5205,0.019,0.5056,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V143,V1-339,numeric,870,0.8612,0.8499,0.5204,0.0212,0.5052,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V144,V1-339,numeric,63,0.8612,0.8499,0.5209,0.0198,0.5055,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V145,V1-339,numeric,260,0.8612,0.8499,0.5212,0.0191,0.5055,V144,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V144),trees only,family level only,near-duplicate,False
+V146,V1-339,numeric,25,0.8612,0.8504,0.5229,0.0165,0.5055,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V147,V1-339,numeric,27,0.8612,0.8504,0.5232,0.0156,0.5055,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V148,V1-339,numeric,21,0.8612,0.8504,0.5229,0.0158,0.5056,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V149,V1-339,numeric,21,0.8612,0.8504,0.5233,0.0147,0.5056,V148,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V148),trees only,family level only,near-duplicate,False
+V150,V1-339,numeric,1996,0.8612,0.8499,0.5221,0.019,0.5055,V144,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V144),trees only,family level only,near-duplicate,False
+V151,V1-339,numeric,56,0.8612,0.8499,0.5205,0.0211,0.5055,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V152,V1-339,numeric,39,0.8612,0.8499,0.5212,0.0196,0.5054,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V153,V1-339,numeric,19,0.8612,0.8504,0.5225,0.0163,0.5056,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V154,V1-339,numeric,19,0.8612,0.8504,0.5227,0.0159,0.5056,V153,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V153),trees only,family level only,near-duplicate,False
+V155,V1-339,numeric,25,0.8612,0.8504,0.523,0.0156,0.5056,V148,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V148),trees only,family level only,near-duplicate,False
+V156,V1-339,numeric,25,0.8612,0.8504,0.5234,0.0147,0.5056,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V157,V1-339,numeric,25,0.8612,0.8504,0.5233,0.0154,0.5056,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V158,V1-339,numeric,25,0.8612,0.8504,0.5238,0.0143,0.5056,V157,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V157),trees only,family level only,near-duplicate,False
+V159,V1-339,numeric,6663,0.8612,0.8499,0.5184,0.0228,0.5057,V151,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V151),trees only,family level only,near-duplicate,False
+V160,V1-339,numeric,9621,0.8612,0.8499,0.519,0.0215,0.5056,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V161,V1-339,numeric,79,0.8612,0.8504,0.5205,0.019,0.5056,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V162,V1-339,numeric,185,0.8612,0.8504,0.5206,0.019,0.5056,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V163,V1-339,numeric,106,0.8612,0.8504,0.5205,0.0189,0.5056,V161,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V161),trees only,family level only,near-duplicate,False
+V164,V1-339,numeric,1978,0.8612,0.8499,0.5205,0.0212,0.5054,V143,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V143),trees only,family level only,near-duplicate,False
+V165,V1-339,numeric,2547,0.8612,0.8499,0.5208,0.0205,0.5054,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V166,V1-339,numeric,987,0.8612,0.8499,0.5209,0.0197,0.5057,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V167,V1-339,numeric,873,0.7636,0.7301,0.6751,0.0258,0.5177,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V168,V1-339,numeric,965,0.7636,0.7301,0.6766,0.0237,0.5178,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V169,V1-339,numeric,20,0.7632,0.7309,0.6566,0.0383,0.5173,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V170,V1-339,numeric,49,0.7632,0.7309,0.6756,0.0315,0.517,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V171,V1-339,numeric,62,0.7632,0.7309,0.6764,0.029,0.5169,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V172,V1-339,numeric,32,0.7636,0.7301,0.6538,0.0379,0.5176,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V173,V1-339,numeric,8,0.7636,0.7301,0.6534,0.0391,0.5177,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V174,V1-339,numeric,9,0.7632,0.7309,0.6563,0.0358,0.5173,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V175,V1-339,numeric,15,0.7632,0.7309,0.6564,0.0356,0.5173,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V176,V1-339,numeric,49,0.7636,0.7301,0.6722,0.0286,0.5181,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V177,V1-339,numeric,862,0.7636,0.7301,0.6731,0.0291,0.5174,V167,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V167),trees only,family level only,near-duplicate,False
+V178,V1-339,numeric,1236,0.7636,0.7301,0.675,0.0273,0.5175,V168,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V168),trees only,family level only,near-duplicate,False
+V179,V1-339,numeric,921,0.7636,0.7301,0.6745,0.0278,0.5174,V168,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V168),trees only,family level only,near-duplicate,False
+V180,V1-339,numeric,84,0.7632,0.7309,0.6618,0.0309,0.5168,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V181,V1-339,numeric,25,0.7636,0.7301,0.6601,0.0316,0.5173,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V182,V1-339,numeric,84,0.7636,0.7301,0.6612,0.0298,0.5174,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V183,V1-339,numeric,42,0.7636,0.7301,0.6609,0.0301,0.5173,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V184,V1-339,numeric,17,0.7632,0.7309,0.6622,0.0339,0.517,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V185,V1-339,numeric,32,0.7632,0.7309,0.6618,0.032,0.5168,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V186,V1-339,numeric,39,0.7636,0.7301,0.6714,0.0297,0.5176,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V187,V1-339,numeric,215,0.7636,0.7301,0.6744,0.0266,0.5177,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V188,V1-339,numeric,31,0.7632,0.7309,0.672,0.033,0.5167,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V189,V1-339,numeric,31,0.7632,0.7309,0.6736,0.0319,0.5168,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V190,V1-339,numeric,43,0.7636,0.7301,0.6753,0.0293,0.5177,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V191,V1-339,numeric,22,0.7636,0.7301,0.6607,0.0372,0.5175,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V192,V1-339,numeric,45,0.7636,0.7301,0.6623,0.036,0.5174,V187,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V187),trees only,family level only,near-duplicate,False
+V193,V1-339,numeric,38,0.7636,0.7301,0.6615,0.0364,0.5175,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V194,V1-339,numeric,8,0.7632,0.7309,0.6618,0.0401,0.5166,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V195,V1-339,numeric,17,0.7632,0.7309,0.6626,0.0394,0.5167,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V196,V1-339,numeric,39,0.7636,0.7301,0.6598,0.0331,0.5175,V191,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V191),trees only,family level only,near-duplicate,False
+V197,V1-339,numeric,15,0.7632,0.7309,0.6613,0.0363,0.5166,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V198,V1-339,numeric,22,0.7632,0.7309,0.6618,0.0353,0.5167,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V199,V1-339,numeric,46,0.7636,0.7301,0.6776,0.028,0.5176,V190,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V190),trees only,family level only,near-duplicate,False
+V200,V1-339,numeric,46,0.7632,0.7309,0.6772,0.0319,0.5166,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V201,V1-339,numeric,56,0.7632,0.7309,0.6787,0.0313,0.5168,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V202,V1-339,numeric,10970,0.7636,0.7301,0.6745,0.026,0.5177,V167,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V167),trees only,family level only,near-duplicate,False
+V203,V1-339,numeric,14951,0.7636,0.7301,0.6759,0.023,0.5179,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V204,V1-339,numeric,12858,0.7636,0.7301,0.6761,0.024,0.5178,V168,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V168),trees only,family level only,near-duplicate,False
+V205,V1-339,numeric,2240,0.7636,0.7301,0.6539,0.0378,0.5176,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V206,V1-339,numeric,1780,0.7636,0.7301,0.6534,0.0391,0.5177,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V207,V1-339,numeric,3246,0.7636,0.7301,0.6544,0.0355,0.5177,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V208,V1-339,numeric,2552,0.7632,0.7309,0.6563,0.0357,0.5172,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V209,V1-339,numeric,3451,0.7632,0.7309,0.6562,0.0356,0.5172,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V210,V1-339,numeric,2836,0.7632,0.7309,0.6564,0.0355,0.5172,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V211,V1-339,numeric,7624,0.7636,0.7301,0.6729,0.0294,0.5174,V167,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V167),trees only,family level only,near-duplicate,False
+V212,V1-339,numeric,8868,0.7636,0.7301,0.6749,0.0275,0.5175,V168,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V168),trees only,family level only,near-duplicate,False
+V213,V1-339,numeric,8317,0.7636,0.7301,0.6744,0.0281,0.5174,V168,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V168),trees only,family level only,near-duplicate,False
+V214,V1-339,numeric,2282,0.7636,0.7301,0.66,0.0316,0.5174,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V215,V1-339,numeric,2747,0.7636,0.7301,0.6611,0.0297,0.5174,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V216,V1-339,numeric,2532,0.7636,0.7301,0.6608,0.0301,0.5173,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V217,V1-339,numeric,304,0.7791,0.7499,0.6636,0.0304,0.5158,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V218,V1-339,numeric,401,0.7791,0.7499,0.6659,0.0281,0.5158,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V219,V1-339,numeric,379,0.7791,0.7499,0.6655,0.0288,0.5158,V217,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V217),trees only,family level only,near-duplicate,False
+V220,V1-339,numeric,26,0.7605,0.729,0.6532,0.0389,0.5168,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V221,V1-339,numeric,77,0.7605,0.729,0.6623,0.0359,0.5161,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V222,V1-339,numeric,76,0.7605,0.729,0.6645,0.0343,0.5162,V221,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V221),trees only,family level only,near-duplicate,False
+V223,V1-339,numeric,17,0.7791,0.7499,0.6415,0.0442,0.5155,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V224,V1-339,numeric,79,0.7791,0.7499,0.6442,0.0412,0.5156,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V225,V1-339,numeric,35,0.7791,0.7499,0.6435,0.0422,0.5155,V224,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V224),trees only,family level only,near-duplicate,False
+V226,V1-339,numeric,81,0.7791,0.7499,0.6431,0.0409,0.5153,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V227,V1-339,numeric,50,0.7605,0.729,0.6549,0.0376,0.5167,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V228,V1-339,numeric,55,0.7791,0.7499,0.6599,0.032,0.5158,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V229,V1-339,numeric,91,0.7791,0.7499,0.6632,0.029,0.5159,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V230,V1-339,numeric,66,0.7791,0.7499,0.6623,0.0298,0.5159,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V231,V1-339,numeric,294,0.7791,0.7499,0.661,0.0338,0.5155,V217,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V217),trees only,family level only,near-duplicate,False
+V232,V1-339,numeric,338,0.7791,0.7499,0.6633,0.032,0.5154,V217,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V217),trees only,family level only,near-duplicate,False
+V233,V1-339,numeric,333,0.7791,0.7499,0.6624,0.0328,0.5155,V217,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V217),trees only,family level only,near-duplicate,False
+V234,V1-339,numeric,122,0.7605,0.729,0.6605,0.0282,0.517,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V235,V1-339,numeric,24,0.7791,0.7499,0.6479,0.0362,0.5155,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V236,V1-339,numeric,46,0.7791,0.7499,0.6505,0.0333,0.5155,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V237,V1-339,numeric,40,0.7791,0.7499,0.6492,0.0346,0.5155,V236,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V236),trees only,family level only,near-duplicate,False
+V238,V1-339,numeric,24,0.7605,0.729,0.6587,0.0327,0.5167,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V239,V1-339,numeric,24,0.7605,0.729,0.6599,0.0318,0.5167,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V240,V1-339,numeric,6,0.7791,0.7499,0.6412,0.0433,0.5155,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V241,V1-339,numeric,5,0.7791,0.7499,0.6411,0.0435,0.5155,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V242,V1-339,numeric,21,0.7791,0.7499,0.6593,0.0331,0.5155,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V243,V1-339,numeric,43,0.7791,0.7499,0.6614,0.031,0.5155,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V244,V1-339,numeric,23,0.7791,0.7499,0.6598,0.033,0.5155,V242,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V242),trees only,family level only,near-duplicate,False
+V245,V1-339,numeric,58,0.7605,0.729,0.6597,0.0371,0.5159,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V246,V1-339,numeric,46,0.7791,0.7499,0.6627,0.0328,0.5156,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V247,V1-339,numeric,19,0.7791,0.7499,0.6479,0.0412,0.5154,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V248,V1-339,numeric,23,0.7791,0.7499,0.6501,0.0394,0.5153,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V249,V1-339,numeric,23,0.7791,0.7499,0.6491,0.0405,0.5154,V248,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V248),trees only,family level only,near-duplicate,False
+V250,V1-339,numeric,19,0.7605,0.729,0.6522,0.0435,0.5159,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V251,V1-339,numeric,19,0.7605,0.729,0.6532,0.0428,0.5159,V250,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V250),trees only,family level only,near-duplicate,False
+V252,V1-339,numeric,25,0.7791,0.7499,0.6468,0.037,0.5154,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V253,V1-339,numeric,66,0.7791,0.7499,0.6482,0.0346,0.5154,V248,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V248),trees only,family level only,near-duplicate,False
+V254,V1-339,numeric,45,0.7791,0.7499,0.6476,0.0358,0.5154,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V255,V1-339,numeric,46,0.7605,0.729,0.6522,0.0412,0.5158,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V256,V1-339,numeric,48,0.7605,0.729,0.6529,0.04,0.5159,V255,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V255),trees only,family level only,near-duplicate,False
+V257,V1-339,numeric,49,0.7791,0.7499,0.6648,0.0314,0.5155,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V258,V1-339,numeric,67,0.7791,0.7499,0.6667,0.0297,0.5154,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V259,V1-339,numeric,68,0.7605,0.729,0.6631,0.0364,0.5159,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V260,V1-339,numeric,9,0.7791,0.7499,0.6467,0.0381,0.5153,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V261,V1-339,numeric,41,0.7791,0.7499,0.6507,0.0348,0.5153,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V262,V1-339,numeric,21,0.7791,0.7499,0.6495,0.0363,0.5153,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V263,V1-339,numeric,10422,0.7791,0.7499,0.6629,0.0306,0.5158,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V264,V1-339,numeric,13358,0.7791,0.7499,0.6651,0.0284,0.5158,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V265,V1-339,numeric,11757,0.7791,0.7499,0.6647,0.029,0.5158,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V266,V1-339,numeric,2178,0.7791,0.7499,0.6415,0.0442,0.5155,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V267,V1-339,numeric,3616,0.7791,0.7499,0.6443,0.0411,0.5155,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V268,V1-339,numeric,2756,0.7791,0.7499,0.6435,0.0422,0.5155,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V269,V1-339,numeric,151,0.7791,0.7499,0.6408,0.0431,0.5154,V266,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V266),trees only,family level only,near-duplicate,False
+V270,V1-339,numeric,2340,0.7605,0.729,0.6548,0.038,0.5166,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V271,V1-339,numeric,2787,0.7605,0.729,0.6551,0.0376,0.5167,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V272,V1-339,numeric,2507,0.7605,0.729,0.655,0.0376,0.5166,V270,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V270),trees only,family level only,near-duplicate,False
+V273,V1-339,numeric,7177,0.7791,0.7499,0.6608,0.0341,0.5155,V217,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V217),trees only,family level only,near-duplicate,False
+V274,V1-339,numeric,8315,0.7791,0.7499,0.6631,0.0323,0.5154,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V275,V1-339,numeric,7776,0.7791,0.7499,0.6622,0.033,0.5154,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V276,V1-339,numeric,2263,0.7791,0.7499,0.6479,0.0361,0.5155,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V277,V1-339,numeric,2540,0.7791,0.7499,0.6503,0.0333,0.5155,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V278,V1-339,numeric,2398,0.7791,0.7499,0.6491,0.0346,0.5155,V276,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V276),trees only,family level only,near-duplicate,False
+V279,V1-339,numeric,881,0.0,0.0,0.5805,0.0049,0.5036,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V280,V1-339,numeric,975,0.0,0.0,0.5921,0.0105,0.5059,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V281,V1-339,numeric,23,0.0021,0.0119,0.5403,0.0014,0.5047,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V282,V1-339,numeric,33,0.0021,0.0119,0.6355,0.0214,0.5097,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V283,V1-339,numeric,62,0.0021,0.0119,0.6457,0.019,0.5083,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V284,V1-339,numeric,13,0.0,0.0,0.5266,0.0012,0.5008,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V285,V1-339,numeric,96,0.0,0.0,0.5257,0.017,0.5008,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V286,V1-339,numeric,9,0.0,0.0,0.502,0.0038,0.5,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V287,V1-339,numeric,32,0.0,0.0,0.5361,0.0058,0.5017,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V288,V1-339,numeric,11,0.0021,0.0119,0.5315,0.0007,0.5041,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V289,V1-339,numeric,13,0.0021,0.0119,0.5342,0.0039,0.5044,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V290,V1-339,numeric,58,0.0,0.0,0.5439,0.0003,0.5041,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V291,V1-339,numeric,219,0.0,0.0,0.5571,0.0119,0.5057,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V292,V1-339,numeric,173,0.0,0.0,0.5651,0.0057,0.5032,V291,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V291),trees only,family level only,near-duplicate,False
+V293,V1-339,numeric,870,0.0,0.0,0.5663,0.0049,0.5024,V279,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V279),trees only,family level only,near-duplicate,False
+V294,V1-339,numeric,1286,0.0,0.0,0.6046,0.0091,0.5071,V280,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V280),trees only,family level only,near-duplicate,False
+V295,V1-339,numeric,928,0.0,0.0,0.5919,0.0122,0.5038,V280,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V280),trees only,family level only,near-duplicate,False
+V296,V1-339,numeric,94,0.0021,0.0119,0.5172,0.0177,0.5039,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V297,V1-339,numeric,13,0.0,0.0,0.5078,0.0066,0.5046,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V298,V1-339,numeric,94,0.0,0.0,0.5184,0.014,0.5071,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V299,V1-339,numeric,50,0.0,0.0,0.5151,0.0096,0.5052,V298,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V298),trees only,family level only,near-duplicate,False
+V300,V1-339,numeric,12,0.0021,0.0119,0.5125,0.0048,0.5016,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V301,V1-339,numeric,14,0.0021,0.0119,0.5168,0.0043,0.501,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V302,V1-339,numeric,17,0.0,0.0,0.6579,0.0357,0.5175,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V303,V1-339,numeric,21,0.0,0.0,0.6625,0.0318,0.5176,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V304,V1-339,numeric,17,0.0,0.0,0.6603,0.0325,0.5175,V302,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V302),trees only,family level only,near-duplicate,False
+V305,V1-339,numeric,2,0.0,0.0,0.5,0.0001,0.5,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V306,V1-339,numeric,16210,0.0,0.0,0.5808,0.0051,0.5033,V279,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V279),trees only,family level only,near-duplicate,False
+V307,V1-339,numeric,37367,0.0,0.0,0.5419,0.02,0.5019,V280,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V280),trees only,family level only,near-duplicate,False
+V308,V1-339,numeric,23064,0.0,0.0,0.5918,0.0088,0.5051,V280,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V280),trees only,family level only,near-duplicate,False
+V309,V1-339,numeric,4236,0.0,0.0,0.5273,0.001,0.5009,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V310,V1-339,numeric,19136,0.0,0.0,0.5189,0.0139,0.5018,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V311,V1-339,numeric,3098,0.0,0.0,0.502,0.0038,0.5001,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V312,V1-339,numeric,8068,0.0,0.0,0.5389,0.0045,0.5014,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V313,V1-339,numeric,5529,0.0021,0.0119,0.5339,0.0008,0.5047,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V314,V1-339,numeric,11377,0.0021,0.0119,0.5307,0.0047,0.5059,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V315,V1-339,numeric,6973,0.0021,0.0119,0.5359,0.0025,0.5049,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V316,V1-339,numeric,9814,0.0,0.0,0.5666,0.0049,0.5025,V279,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V279),trees only,family level only,near-duplicate,False
+V317,V1-339,numeric,15184,0.0,0.0,0.6043,0.0079,0.5073,V280,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V280),trees only,family level only,near-duplicate,False
+V318,V1-339,numeric,12309,0.0,0.0,0.5919,0.0114,0.5039,V280,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V280),trees only,family level only,near-duplicate,False
+V319,V1-339,numeric,4799,0.0,0.0,0.5078,0.0067,0.5046,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V320,V1-339,numeric,6439,0.0,0.0,0.5185,0.0136,0.507,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V321,V1-339,numeric,5560,0.0,0.0,0.5152,0.0096,0.5052,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V322,V1-339,numeric,881,0.8605,0.8492,0.5216,0.0174,0.5057,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V323,V1-339,numeric,1411,0.8605,0.8492,0.5219,0.0169,0.5057,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V324,V1-339,numeric,976,0.8605,0.8492,0.522,0.0169,0.5056,V323,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V323),trees only,family level only,near-duplicate,False
+V325,V1-339,numeric,13,0.8605,0.8492,0.5203,0.0192,0.5058,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V326,V1-339,numeric,45,0.8605,0.8492,0.5205,0.0186,0.5057,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V327,V1-339,numeric,19,0.8605,0.8492,0.5205,0.0184,0.5057,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V328,V1-339,numeric,16,0.8605,0.8492,0.5207,0.0183,0.5058,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V329,V1-339,numeric,100,0.8605,0.8492,0.521,0.0183,0.5058,V323,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V323),trees only,family level only,near-duplicate,False
+V330,V1-339,numeric,56,0.8605,0.8492,0.5208,0.0182,0.5058,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V331,V1-339,numeric,1758,0.8605,0.8492,0.5217,0.0173,0.5057,V322,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V322),trees only,family level only,near-duplicate,False
+V332,V1-339,numeric,2453,0.8605,0.8492,0.522,0.0167,0.5057,V323,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V323),trees only,family level only,near-duplicate,False
+V333,V1-339,numeric,1971,0.8605,0.8492,0.522,0.0168,0.5057,V323,,masked,optional for trees; drop for LR and explanations (|r| >= 0.95 with V323),trees only,family level only,near-duplicate,False
+V334,V1-339,numeric,143,0.8605,0.8492,0.5203,0.0192,0.5058,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V335,V1-339,numeric,672,0.8605,0.8492,0.5206,0.0186,0.5057,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V336,V1-339,numeric,356,0.8605,0.8492,0.5205,0.0184,0.5057,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V337,V1-339,numeric,254,0.8605,0.8492,0.5207,0.0183,0.5058,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V338,V1-339,numeric,380,0.8605,0.8492,0.521,0.0183,0.5058,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+V339,V1-339,numeric,334,0.8605,0.8492,0.5208,0.0182,0.5058,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+id_01,id_01-38,numeric,77,0.7558,0.7199,0.6422,0.0481,0.5162,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+id_02,id_01-38,numeric,115655,0.7615,0.7297,0.6646,0.0319,0.5179,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+id_03,id_01-38,numeric,24,0.8877,0.8688,0.6209,0.0187,0.5102,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+id_04,id_01-38,numeric,15,0.8877,0.8688,0.6199,0.0182,0.5102,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+id_05,id_01-38,numeric,93,0.7682,0.7341,0.6567,0.0324,0.5168,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+id_06,id_01-38,numeric,101,0.7682,0.7341,0.6493,0.0421,0.517,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+id_07,id_01-38,numeric,84,0.9913,0.99,0.5061,0.0004,0.5007,,,masked,drop,no,family level only,>99% missing,False
+id_08,id_01-38,numeric,94,0.9913,0.99,0.5061,0.0004,0.5007,,,masked,drop,no,family level only,>99% missing,False
+id_09,id_01-38,numeric,46,0.8731,0.8533,0.6316,0.0197,0.5106,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+id_10,id_01-38,numeric,62,0.8731,0.8533,0.6306,0.0192,0.5107,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+id_11,id_01-38,numeric,365,0.7613,0.7301,0.6578,0.0363,0.5166,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+id_12,id_01-38,text,2,0.7558,0.7199,0.6863,,0.5188,,,masked,categorical; missing as its own category,yes,family level only,,False
+id_13,id_01-38,numeric,54,0.7844,0.7429,0.6522,0.0378,0.5115,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+id_14,id_01-38,numeric,25,0.8645,0.8592,0.521,0.0164,0.5027,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+id_15,id_01-38,text,3,0.7613,0.7297,0.6906,,0.5163,,,masked,categorical; missing as its own category,yes,family level only,,False
+id_16,id_01-38,text,2,0.781,0.7518,0.6664,,0.5146,,,masked,categorical; missing as its own category,yes,family level only,,False
+id_17,id_01-38,numeric,104,0.764,0.7317,0.6719,0.0205,0.5181,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+id_18,id_01-38,numeric,18,0.9236,0.8996,0.5549,0.0064,0.5128,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+id_19,id_01-38,numeric,522,0.7641,0.7318,0.6493,0.0371,0.5171,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+id_20,id_01-38,numeric,394,0.7642,0.7323,0.6627,0.0291,0.518,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+id_21,id_01-38,numeric,490,0.9913,0.99,0.5062,0.0004,0.5007,,,masked,drop,no,family level only,>99% missing,False
+id_22,id_01-38,numeric,25,0.9912,0.99,0.5062,0.0004,0.5007,,,masked,drop,no,family level only,>99% missing,False
+id_23,id_01-38,text,3,0.9912,0.99,0.5054,,0.5007,,,masked,drop,no,family level only,>99% missing,False
+id_24,id_01-38,numeric,12,0.992,0.9906,0.5059,0.0004,0.5007,,,masked,drop,no,family level only,>99% missing,False
+id_25,id_01-38,numeric,341,0.9913,0.9901,0.506,0.0008,0.5007,,,masked,drop,no,family level only,>99% missing,False
+id_26,id_01-38,numeric,95,0.9913,0.99,0.5061,0.0003,0.5007,,,masked,drop,no,family level only,>99% missing,False
+id_27,id_01-38,text,2,0.9912,0.99,0.5054,,0.5007,,,masked,drop,no,family level only,>99% missing,False
+id_28,id_01-38,text,2,0.7613,0.7301,0.6895,,0.5161,,,masked,categorical; missing as its own category,yes,family level only,,False
+id_29,id_01-38,text,2,0.7613,0.7301,0.6897,,0.5161,,,masked,categorical; missing as its own category,yes,family level only,,False
+id_30,id_01-38,text,75,0.8687,0.8605,0.5108,,0.5034,,,readable,normalise: os_family + major version; missing as its own category,"yes, transformed",yes,raw strings drift (new versions/devices),False
+id_31,id_01-38,text,130,0.7625,0.7304,0.6778,,0.5165,,,readable,normalise: browser_family + major version; missing as its own category,"yes, transformed",yes,raw strings drift (new versions/devices),False
+id_32,id_01-38,numeric,4,0.8686,0.8605,0.5202,0.014,0.5038,,,masked,"keep; NaN as NaN for trees, median + block indicator for LR",yes,family level only,,False
+id_33,id_01-38,text,260,0.8759,0.8605,0.5199,,0.508,,,readable,normalise: split into screen width and height; missing as its own category,"yes, transformed",yes,raw strings drift (new versions/devices),False
+id_34,id_01-38,text,4,0.8682,0.8576,0.5265,,0.5034,,,masked,categorical; missing as its own category,yes,family level only,,False
+id_35,id_01-38,text,2,0.7613,0.7297,0.6918,,0.5178,,,masked,categorical; missing as its own category,yes,family level only,,False
+id_36,id_01-38,text,2,0.7613,0.7297,0.6822,,0.516,,,masked,categorical; missing as its own category,yes,family level only,,False
+id_37,id_01-38,text,2,0.7613,0.7297,0.6825,,0.5175,,,masked,categorical; missing as its own category,yes,family level only,,False
+id_38,id_01-38,text,2,0.7613,0.7297,0.6875,,0.5112,,,masked,categorical; missing as its own category,yes,family level only,,False
+DeviceType,DeviceType/Info,text,2,0.7616,0.7298,0.685,,0.5189,,,readable,categorical; missing as its own category,yes,yes,,False
+DeviceInfo,DeviceType/Info,text,1786,0.7991,0.7729,0.6015,,0.5145,,,readable,normalise: device_brand; missing as its own category,"yes, transformed",yes,raw strings drift (new versions/devices),False

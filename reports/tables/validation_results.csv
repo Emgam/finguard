@@ -1,0 +1,31 @@
+check,status,observed,expected,detail
+train_transaction: column names and order,PASS,394 columns,394,
+train_transaction: row count,PASS,590540,590540,
+train_transaction: TransactionID unique,PASS,0 duplicates,0,
+train_identity: column names and order,PASS,41 columns,41,
+train_identity: row count,PASS,144233,144233,
+train_identity: TransactionID unique,PASS,0 duplicates,0,
+test_transaction: column names and order,PASS,393 columns,393,
+test_transaction: row count,PASS,506691,506691,
+test_transaction: TransactionID unique,PASS,0 duplicates,0,
+test_identity: column names and order,WARN,38 names differ,match schema,hyphenated id-XX names; fixed by normalize_identity_columns()
+test_identity: row count,PASS,141907,141907,
+test_identity: TransactionID unique,PASS,0 duplicates,0,
+train: identity rows without a transaction,PASS,0,0,
+train: transactions with an identity row,INFO,24.4%,,identity data exists for a minority of transactions
+test: identity rows without a transaction,PASS,0,0,
+test: transactions with an identity row,INFO,28.0%,,identity data exists for a minority of transactions
+train/test TransactionID overlap,PASS,0,0,
+"target domain {0,1}, no missing",PASS,"[0, 1]",,
+fraud prevalence,INFO,"20,663 frauds = 3.499%",,imbalance 1:27.6
+train/test column parity after fix,PASS,['isFraud'],['isFraud'],
+exact duplicate rows (ignoring TransactionID),WARN,3,0,keep: too few to matter; drop only if they share a time stamp
+rows identical except ID and time,WARN,487 rows in 439 groups,,8 groups carry conflicting labels
+TransactionAmt strictly positive,PASS,True,,
+TransactionID order vs time,WARN,Spearman 1.0000,,TransactionID is a clock in disguise: exclude from features
+time coverage,INFO,"train 182 d, gap 30 d, test 183 d",,TransactionDT is relative seconds; no calendar date or time zone
+raw TransactionDT range overlap train/test,WARN,disjoint,,test values all exceed training values: never use raw TransactionDT as a feature
+customer or account identifier present,INFO,none,,no customer ID exists; any entity grouping is a heuristic proxy
+"card1 is a shared code, not a card identity",INFO,"most frequent card1 value covers 14,932 transactions",,card1 groups many unrelated payments
+columns more than 99% missing,WARN,9,0,"id_07, id_08, id_21, id_22, id_23, id_24, id_25, id_26, id_27"
+constant columns,PASS,0,0,
