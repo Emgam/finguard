@@ -1,0 +1,58 @@
+{
+ "variants": [
+  {
+   "variant": "review_style",
+   "inputs": 502,
+   "C": 0.01,
+   "valid_pr_auc": 0.4702498093955252,
+   "test_pr_auc": 0.4564057442783199,
+   "test_ci95": [
+    0.43815548807502835,
+    0.4756023882695073
+   ],
+   "recall@5%": 0.49966599866399464
+  },
+  {
+   "variant": "d_reexpressed",
+   "inputs": 502,
+   "C": 0.01,
+   "valid_pr_auc": 0.47085067636337474,
+   "test_pr_auc": 0.45816234733589306,
+   "test_ci95": [
+    0.4398272557873292,
+    0.47738539336916874
+   ],
+   "recall@5%": 0.5020040080160321
+  },
+  {
+   "variant": "no_codes",
+   "inputs": 494,
+   "C": 0.01,
+   "valid_pr_auc": 0.4688106031691433,
+   "test_pr_auc": 0.45742572984448,
+   "test_ci95": [
+    0.4387749109078251,
+    0.4767094196112983
+   ],
+   "recall@5%": 0.501002004008016
+  },
+  {
+   "variant": "both",
+   "inputs": 494,
+   "C": 0.01,
+   "valid_pr_auc": 0.46937723799045716,
+   "test_pr_auc": 0.4585504308967506,
+   "test_ci95": [
+    0.43996170136615037,
+    0.47803169077244473
+   ],
+   "recall@5%": 0.5026720106880428
+  }
+ ],
+ "meaning": {
+  "review_style": "design-review preprocessing: raw D columns and card/address codes as numbers",
+  "d_reexpressed": "same, trending D columns as day - D",
+  "no_codes": "same, card/address codes removed",
+  "both": "trending D re-expressed and codes removed"
+ }
+}

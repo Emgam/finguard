@@ -1,0 +1,28 @@
+[    21s] novelty: computing flags
+[    78s] novelty: decision = keep flags as displayed indicators only; validation CV gains [-0.0003 -0.0033]; test gain +0.0010
+[    78s] phase 2 additions finished
+[     1s] iforest: curated (15 inputs), fitted on 402,838 training-period legitimate rows (sampled)
+[    43s] iforest: curated valid PR-AUC 0.0412 test 0.0379 overlap 0.000
+[    43s] iforest: all (473 inputs), fitted on 402,838 training-period legitimate rows (sampled)
+[    75s] iforest: all valid PR-AUC 0.1746 test 0.1174 overlap 0.001
+[    75s] iforest: label-free fit of 'all' on all training-period rows, scoring every row
+[    97s] phase 2 additions finished
+[     2s] lr_variants: review_style
+[    76s] lr_variants: review_style C=0.01 valid 0.4702 test 0.4564
+[    76s] lr_variants: d_reexpressed
+[   151s] lr_variants: d_reexpressed C=0.01 valid 0.4709 test 0.4582
+[   151s] lr_variants: no_codes
+[   223s] lr_variants: no_codes C=0.01 valid 0.4688 test 0.4574
+[   223s] lr_variants: both
+[   297s] lr_variants: both C=0.01 valid 0.4694 test 0.4586
+[   297s] phase 2 additions finished
+[     1s] iforest_feature: LightGBM with 474 inputs
+[   777s] iforest_feature: test PR-AUC 0.5803 (main 0.5805); gain rank 1
+[   777s] phase 2 additions finished
+ALL_2B_DONE
+[    33s] lr_v2: C=0.003 valid PR-AUC 0.4687
+[    51s] lr_v2: C=0.01 valid PR-AUC 0.4694
+[    74s] lr_v2: C=0.03 valid PR-AUC 0.4680
+[   175s] lr_v2: C=0.01 test PR-AUC 0.4586; LightGBM - LR v2 = +0.1219
+[   175s] phase 2 additions finished
+LRV2_DONE

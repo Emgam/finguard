@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "finguard"
 version = "0.1.0"
-description = "FinGuard AI: decision-support prototype for card-not-present payment fraud review (Phase 1: data understanding; Phase 2: models)"
+description = "FinGuard AI: decision-support prototype for card-not-present payment fraud review (Phase 1: data; Phase 2: models; Phase 3: knowledge base)"
 requires-python = ">=3.10"
 dependencies = [
     "pandas>=2.2",
@@ -15,9 +15,12 @@ dependencies = [
     "scipy>=1.11",
     "matplotlib>=3.8",
     "lightgbm>=4.3",
+    "pdfplumber>=0.10",
 ]
 
 [project.optional-dependencies]
+kb = ["sentence-transformers>=2.7"]          # dense embeddings and cross-encoder re-ranking (optional)
+mlops = ["mlflow>=2.12"]
 dev = ["jupyter>=1.0", "nbconvert>=7", "pytest>=8", "ruff>=0.5"]
 
 [tool.setuptools.packages.find]

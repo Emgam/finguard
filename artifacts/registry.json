@@ -1,0 +1,154 @@
+{
+ "models": [
+  {
+   "model_id": "lgbm_numeric-v1",
+   "name": "lgbm_numeric",
+   "registered": "2026-10-29 14:08:02",
+   "model_file": "artifacts/phase2/lgbm_numeric/model.txt",
+   "model_sha256": "47eb7cf3125059f73717a5490050e865831fa3c4366581f75fcc4e070598eab9",
+   "data_manifest_sha256": "6fe6f7dbfa28e0aa80fa6f8c76a09d126f294b6f3d0bb524d0a731187b7a2d12",
+   "code": "src:b8264059eeec",
+   "params": {
+    "objective": "binary",
+    "learning_rate": 0.05,
+    "num_leaves": 127,
+    "min_data_in_leaf": 100,
+    "feature_fraction": 0.5,
+    "bagging_fraction": 0.8,
+    "bagging_freq": 1,
+    "lambda_l2": 1.0,
+    "max_bin": 255,
+    "cat_smooth": 10.0,
+    "cat_l2": 10.0,
+    "min_data_per_group": 100,
+    "max_cat_threshold": 32,
+    "deterministic": true,
+    "force_row_wise": true,
+    "num_threads": 2,
+    "verbose": -1,
+    "seed": 42,
+    "bagging_seed": 43,
+    "feature_fraction_seed": 44,
+    "data_random_seed": 45
+   },
+   "best_iteration": 2638,
+   "metrics": {
+    "valid": {
+     "n": 87551,
+     "frauds": 2948,
+     "prevalence": 0.03367180272069994,
+     "pr_auc": 0.6591716386514546,
+     "roc_auc": 0.9294594518566411,
+     "precision@1%": 0.9337899543378996,
+     "recall@1%": 0.2774762550881954,
+     "precision@5%": 0.46825034262220194,
+     "recall@5%": 0.6953867028493894
+    },
+    "test": {
+     "n": 85430,
+     "frauds": 2994,
+     "prevalence": 0.03504623668500527,
+     "pr_auc": 0.5804827091167077,
+     "roc_auc": 0.9068308467420877,
+     "precision@1%": 0.892271662763466,
+     "recall@1%": 0.2545090180360721,
+     "precision@5%": 0.43726591760299627,
+     "recall@5%": 0.6239144956579826
+    }
+   },
+   "gate": {
+    "model": "lgbm_numeric",
+    "passed": true,
+    "checks": [
+     {
+      "gate": "Data",
+      "check": "Phase 1 data-quality checks",
+      "passed": true,
+      "detail": "0 FAIL, 6 WARN"
+     },
+     {
+      "gate": "Leakage",
+      "check": "no forbidden or ID/time-like input",
+      "passed": true,
+      "detail": "473 inputs; offending: none"
+     },
+     {
+      "gate": "Leakage",
+      "check": "statistics fitted on training rows only",
+      "passed": true,
+      "detail": "fit rows 417,559 = training rows 417,559"
+     },
+     {
+      "gate": "Leakage",
+      "check": "time split ordered and disjoint",
+      "passed": true,
+      "detail": "train 0-120, valid 121-151, test 152-181"
+     },
+     {
+      "gate": "Model",
+      "check": "PR-AUC interval entirely above the strongest baseline",
+      "passed": true,
+      "detail": "LightGBM entity-block 95% lower bound 0.552 vs logistic regression v2 (strengthened) 0.459"
+     },
+     {
+      "gate": "Model",
+      "check": "not worse than the champion",
+      "passed": true,
+      "detail": "no champion registered yet"
+     },
+     {
+      "gate": "Calibration",
+      "check": "calibrated Brier below raw",
+      "passed": true,
+      "detail": "0.0208 vs raw 0.0221"
+     },
+     {
+      "gate": "Calibration",
+      "check": "band fraud rates High > Medium > Low (test)",
+      "passed": true,
+      "detail": "High 90.1%, Medium 30.7%, Low 1.3%"
+     },
+     {
+      "gate": "Explainability",
+      "check": "TreeSHAP local accuracy",
+      "passed": true,
+      "detail": "max |sum SHAP - score| = 1.9e-09"
+     },
+     {
+      "gate": "Explainability",
+      "check": "no ID/time-like feature in the top 20",
+      "passed": true,
+      "detail": "top 3: C13, TransactionAmt, D1n; offending: none"
+     },
+     {
+      "gate": "Explainability",
+      "check": "top-5 family overlap >= 0.6",
+      "passed": true,
+      "detail": "0.91"
+     }
+    ]
+   },
+   "mlflow": {
+    "status": "skipped (MLFLOW_TRACKING_URI not set)"
+   }
+  }
+ ],
+ "aliases": {
+  "champion": "lgbm_numeric-v1"
+ },
+ "history": [
+  {
+   "event": "register",
+   "model_id": "lgbm_numeric-v1",
+   "at": "2026-10-29 14:08:02"
+  },
+  {
+   "event": "promote",
+   "alias": "champion",
+   "model_id": "lgbm_numeric-v1",
+   "previous": null,
+   "approved_by": "project lead",
+   "at": "2026-10-30 17:07:51"
+  }
+ ]
+}

@@ -1,0 +1,72 @@
+{
+ "model": "lgbm_numeric",
+ "passed": true,
+ "checks": [
+  {
+   "gate": "Data",
+   "check": "Phase 1 data-quality checks",
+   "passed": true,
+   "detail": "0 FAIL, 6 WARN"
+  },
+  {
+   "gate": "Leakage",
+   "check": "no forbidden or ID/time-like input",
+   "passed": true,
+   "detail": "473 inputs; offending: none"
+  },
+  {
+   "gate": "Leakage",
+   "check": "statistics fitted on training rows only",
+   "passed": true,
+   "detail": "fit rows 417,559 = training rows 417,559"
+  },
+  {
+   "gate": "Leakage",
+   "check": "time split ordered and disjoint",
+   "passed": true,
+   "detail": "train 0-120, valid 121-151, test 152-181"
+  },
+  {
+   "gate": "Model",
+   "check": "PR-AUC interval entirely above the strongest baseline",
+   "passed": true,
+   "detail": "LightGBM entity-block 95% lower bound 0.552 vs logistic regression v2 (strengthened) 0.459"
+  },
+  {
+   "gate": "Model",
+   "check": "not worse than the champion",
+   "passed": true,
+   "detail": "no champion registered yet"
+  },
+  {
+   "gate": "Calibration",
+   "check": "calibrated Brier below raw",
+   "passed": true,
+   "detail": "0.0208 vs raw 0.0221"
+  },
+  {
+   "gate": "Calibration",
+   "check": "band fraud rates High > Medium > Low (test)",
+   "passed": true,
+   "detail": "High 90.1%, Medium 30.7%, Low 1.3%"
+  },
+  {
+   "gate": "Explainability",
+   "check": "TreeSHAP local accuracy",
+   "passed": true,
+   "detail": "max |sum SHAP - score| = 1.9e-09"
+  },
+  {
+   "gate": "Explainability",
+   "check": "no ID/time-like feature in the top 20",
+   "passed": true,
+   "detail": "top 3: C13, TransactionAmt, D1n; offending: none"
+  },
+  {
+   "gate": "Explainability",
+   "check": "top-5 family overlap >= 0.6",
+   "passed": true,
+   "detail": "0.91"
+  }
+ ]
+}

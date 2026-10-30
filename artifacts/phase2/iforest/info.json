@@ -1,0 +1,66 @@
+{
+ "variants": {
+  "curated": {
+   "valid": {
+    "n": 87551,
+    "frauds": 2948,
+    "prevalence": 0.03367180272069994,
+    "pr_auc": 0.041186547323168524,
+    "roc_auc": 0.5743022390906424,
+    "precision@1%": 0.05365296803652968,
+    "recall@1%": 0.01594301221166893,
+    "precision@5%": 0.04568296025582458,
+    "recall@5%": 0.06784260515603799,
+    "overlap_top1pct_with_lightgbm": 0.01141552511415525
+   },
+   "test": {
+    "n": 85430,
+    "frauds": 2994,
+    "prevalence": 0.03504623668500527,
+    "pr_auc": 0.037913528859646634,
+    "roc_auc": 0.5523949928906611,
+    "precision@1%": 0.0,
+    "recall@1%": 0.0,
+    "precision@5%": 0.033707865168539325,
+    "recall@5%": 0.04809619238476954,
+    "overlap_top1pct_with_lightgbm": 0.0
+   },
+   "test_ci95": [
+    0.03643623751029368,
+    0.039817132985976396
+   ]
+  },
+  "all": {
+   "valid": {
+    "n": 87551,
+    "frauds": 2948,
+    "prevalence": 0.03367180272069994,
+    "pr_auc": 0.17462652556669492,
+    "roc_auc": 0.7810702700814568,
+    "precision@1%": 0.3675799086757991,
+    "recall@1%": 0.10922659430122117,
+    "precision@5%": 0.2105984467793513,
+    "recall@5%": 0.31275440976933516,
+    "overlap_top1pct_with_lightgbm": 0.2910958904109589
+   },
+   "test": {
+    "n": 85430,
+    "frauds": 2994,
+    "prevalence": 0.03504623668500527,
+    "pr_auc": 0.11735334955220708,
+    "roc_auc": 0.7747327470701508,
+    "precision@1%": 0.00117096018735363,
+    "recall@1%": 0.00033400133600534405,
+    "precision@5%": 0.18469101123595505,
+    "recall@5%": 0.2635270541082164,
+    "overlap_top1pct_with_lightgbm": 0.00117096018735363
+   },
+   "test_ci95": [
+    0.11127396439974016,
+    0.1235422184869578
+   ]
+  }
+ },
+ "chosen_for_feature": "all",
+ "rule": "variant with the higher validation PR-AUC becomes the candidate feature"
+}

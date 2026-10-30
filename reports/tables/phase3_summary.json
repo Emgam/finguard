@@ -1,0 +1,499 @@
+{
+ "index_version": "4e38771857537a9d",
+ "embedder": "lsa-tfidf-svd256",
+ "n_chunks": 657,
+ "documents": 11,
+ "chosen_variant": "bm25",
+ "hit_at_5": [
+  {
+   "half": "dev",
+   "questions": 27,
+   "gold in top 5": 22,
+   "hit@5": 0.815,
+   "95% interval": "0.63-0.92",
+   "doc@5": 0.963
+  },
+  {
+   "half": "test",
+   "questions": 23,
+   "gold in top 5": 18,
+   "hit@5": 0.783,
+   "95% interval": "0.58-0.90",
+   "doc@5": 1.0
+  },
+  {
+   "half": "all",
+   "questions": 50,
+   "gold in top 5": 40,
+   "hit@5": 0.8,
+   "95% interval": "0.67-0.89",
+   "doc@5": 0.98
+  }
+ ],
+ "summary": [
+  {
+   "variant": "bm25",
+   "questions": 50,
+   "hit_at_1": 0.5,
+   "hit_at_5": 0.8,
+   "doc_at_5": 0.98,
+   "mrr_at_10": 0.6188333333333333
+  },
+  {
+   "variant": "dense",
+   "questions": 50,
+   "hit_at_1": 0.56,
+   "hit_at_5": 0.8,
+   "doc_at_5": 0.98,
+   "mrr_at_10": 0.6618571428571428
+  },
+  {
+   "variant": "hybrid",
+   "questions": 50,
+   "hit_at_1": 0.54,
+   "hit_at_5": 0.8,
+   "doc_at_5": 0.98,
+   "mrr_at_10": 0.6561666666666666
+  },
+  {
+   "variant": "hybrid_rerank",
+   "questions": 50,
+   "hit_at_1": 0.56,
+   "hit_at_5": 0.8,
+   "doc_at_5": 0.98,
+   "mrr_at_10": 0.6506666666666666
+  }
+ ],
+ "by_split": [
+  {
+   "variant": "bm25",
+   "split": "dev",
+   "questions": 27,
+   "hit_at_1": 0.5555555555555556,
+   "hit_at_5": 0.8148148148148148,
+   "doc_at_5": 0.9629629629629629,
+   "mrr_at_10": 0.6567901234567901
+  },
+  {
+   "variant": "bm25",
+   "split": "test",
+   "questions": 23,
+   "hit_at_1": 0.43478260869565216,
+   "hit_at_5": 0.782608695652174,
+   "doc_at_5": 1.0,
+   "mrr_at_10": 0.5742753623188406
+  },
+  {
+   "variant": "dense",
+   "split": "dev",
+   "questions": 27,
+   "hit_at_1": 0.6296296296296297,
+   "hit_at_5": 0.7777777777777778,
+   "doc_at_5": 0.9629629629629629,
+   "mrr_at_10": 0.7043650793650793
+  },
+  {
+   "variant": "dense",
+   "split": "test",
+   "questions": 23,
+   "hit_at_1": 0.4782608695652174,
+   "hit_at_5": 0.8260869565217391,
+   "doc_at_5": 1.0,
+   "mrr_at_10": 0.6119565217391304
+  },
+  {
+   "variant": "hybrid",
+   "split": "dev",
+   "questions": 27,
+   "hit_at_1": 0.5925925925925926,
+   "hit_at_5": 0.8148148148148148,
+   "doc_at_5": 0.9629629629629629,
+   "mrr_at_10": 0.6978395061728394
+  },
+  {
+   "variant": "hybrid",
+   "split": "test",
+   "questions": 23,
+   "hit_at_1": 0.4782608695652174,
+   "hit_at_5": 0.782608695652174,
+   "doc_at_5": 1.0,
+   "mrr_at_10": 0.6072463768115942
+  },
+  {
+   "variant": "hybrid_rerank",
+   "split": "dev",
+   "questions": 27,
+   "hit_at_1": 0.5925925925925926,
+   "hit_at_5": 0.7777777777777778,
+   "doc_at_5": 0.9629629629629629,
+   "mrr_at_10": 0.6697530864197531
+  },
+  {
+   "variant": "hybrid_rerank",
+   "split": "test",
+   "questions": 23,
+   "hit_at_1": 0.5217391304347826,
+   "hit_at_5": 0.8260869565217391,
+   "doc_at_5": 1.0,
+   "mrr_at_10": 0.6282608695652173
+  }
+ ],
+ "abstention": {
+  "rule": "abstain if a name in the question is in no returned passage, or if confidence < threshold (threshold tuned on dev alone)",
+  "threshold": 0.7593402169507937,
+  "dev": {
+   "unanswerable": 5,
+   "correct_abstentions": 5,
+   "answerable": 27,
+   "false_abstentions": 9,
+   "hit@5_after_abstention": 0.5925925925925926
+  },
+  "test": {
+   "unanswerable": 5,
+   "correct_abstentions": 4,
+   "answerable": 23,
+   "false_abstentions": 7,
+   "hit@5_after_abstention": 0.6086956521739131
+  },
+  "all": {
+   "unanswerable": 10,
+   "correct_abstentions": 9,
+   "answerable": 50,
+   "false_abstentions": 16,
+   "hit@5_after_abstention": 0.6
+  }
+ },
+ "ablations": {
+  "threshold_only": {
+   "threshold": 0.7593402169507937,
+   "grounding_check": false,
+   "dev": {
+    "unanswerable": 5,
+    "correct_abstentions": 5,
+    "answerable": 27,
+    "false_abstentions": 9,
+    "hit@5_after_abstention": 0.5925925925925926
+   },
+   "test": {
+    "unanswerable": 5,
+    "correct_abstentions": 4,
+    "answerable": 23,
+    "false_abstentions": 7,
+    "hit@5_after_abstention": 0.6086956521739131
+   },
+   "all": {
+    "unanswerable": 10,
+    "correct_abstentions": 9,
+    "answerable": 50,
+    "false_abstentions": 16,
+    "hit@5_after_abstention": 0.6
+   }
+  },
+  "grounding_only": {
+   "threshold": 0.0,
+   "grounding_check": true,
+   "dev": {
+    "unanswerable": 5,
+    "correct_abstentions": 4,
+    "answerable": 27,
+    "false_abstentions": 1,
+    "hit@5_after_abstention": 0.8148148148148148
+   },
+   "test": {
+    "unanswerable": 5,
+    "correct_abstentions": 2,
+    "answerable": 23,
+    "false_abstentions": 0,
+    "hit@5_after_abstention": 0.782608695652174
+   },
+   "all": {
+    "unanswerable": 10,
+    "correct_abstentions": 6,
+    "answerable": 50,
+    "false_abstentions": 1,
+    "hit@5_after_abstention": 0.8
+   }
+  },
+  "jointly_tuned": {
+   "threshold": 0.0,
+   "grounding_check": true,
+   "dev": {
+    "unanswerable": 5,
+    "correct_abstentions": 4,
+    "answerable": 27,
+    "false_abstentions": 1,
+    "hit@5_after_abstention": 0.8148148148148148
+   },
+   "test": {
+    "unanswerable": 5,
+    "correct_abstentions": 2,
+    "answerable": 23,
+    "false_abstentions": 0,
+    "hit@5_after_abstention": 0.782608695652174
+   },
+   "all": {
+    "unanswerable": 10,
+    "correct_abstentions": 6,
+    "answerable": 50,
+    "false_abstentions": 1,
+    "hit@5_after_abstention": 0.8
+   }
+  }
+ },
+ "misses": [
+  {
+   "id": "q02",
+   "split": "test",
+   "gold_doc": "visa_dispute_management",
+   "top_doc": "visa_dispute_management",
+   "first_gold_rank": NaN
+  },
+  {
+   "id": "q03",
+   "split": "dev",
+   "gold_doc": "visa_dispute_management",
+   "top_doc": "visa_dispute_management",
+   "first_gold_rank": NaN
+  },
+  {
+   "id": "q17",
+   "split": "dev",
+   "gold_doc": "eba_gl_2018_05",
+   "top_doc": "eba_gl_2018_05",
+   "first_gold_rank": 6.0
+  },
+  {
+   "id": "q19",
+   "split": "dev",
+   "gold_doc": "eba_gl_2018_05",
+   "top_doc": "eba_gl_2018_05",
+   "first_gold_rank": 10.0
+  },
+  {
+   "id": "q20",
+   "split": "test",
+   "gold_doc": "eba_gl_2018_05",
+   "top_doc": "eba_gl_2018_05",
+   "first_gold_rank": NaN
+  },
+  {
+   "id": "q25",
+   "split": "dev",
+   "gold_doc": "eba_ecb_payment_fraud_2025",
+   "top_doc": "eba_ecb_payment_fraud_2025",
+   "first_gold_rank": 10.0
+  },
+  {
+   "id": "q26",
+   "split": "test",
+   "gold_doc": "eba_ecb_payment_fraud_2025",
+   "top_doc": "eba_ecb_payment_fraud_2025",
+   "first_gold_rank": NaN
+  },
+  {
+   "id": "q30",
+   "split": "test",
+   "gold_doc": "bct_circulaire_2017_08",
+   "top_doc": "bct_circulaire_2017_08",
+   "first_gold_rank": NaN
+  },
+  {
+   "id": "q33",
+   "split": "dev",
+   "gold_doc": "bct_circulaire_2017_08",
+   "top_doc": "fatf_recommendations",
+   "first_gold_rank": NaN
+  },
+  {
+   "id": "q38",
+   "split": "test",
+   "gold_doc": "frb_fraudclassifier",
+   "top_doc": "frb_fraudclassifier",
+   "first_gold_rank": 8.0
+  }
+ ],
+ "runs": [
+  {
+   "run": 1,
+   "variant": "hybrid_rerank",
+   "hit@5 all": 0.76,
+   "hit@5 dev": null,
+   "hit@5 test": null,
+   "abstained (of 10)": 9,
+   "false abstentions (of 50)": 6,
+   "what changed": "first evaluation of the frozen set: initial parser and tokenizer, threshold-only abstention"
+  },
+  {
+   "run": 2,
+   "variant": "hybrid_rerank",
+   "hit@5 all": 0.8,
+   "hit@5 dev": 0.815,
+   "hit@5 test": 0.783,
+   "abstained (of 10)": 8,
+   "false abstentions (of 50)": 9,
+   "what changed": "parser fixes found on dev misses (running header in small type, heading-sized 'Guideline N: title' lines kept whole, paragraph references not headings, diagram labels not headings, chart tick labels dropped, superscripts and service marks removed) and plural folding in the tokenizer; threshold-only abstention"
+  },
+  {
+   "run": 3,
+   "variant": "hybrid_rerank",
+   "hit@5 all": 0.8,
+   "hit@5 dev": 0.8148148148148148,
+   "hit@5 test": 0.782608695652174,
+   "abstained (of 10)": 7,
+   "false abstentions (of 50)": 1,
+   "what changed": "grounding check added to abstention (names in the question must appear in the returned passages); threshold tuned jointly with the check on dev: it fell to 0 (dev 5/5 caught by the check alone) and over-fitted (test 2/5)"
+  },
+  {
+   "run": 4,
+   "variant": "hybrid_rerank",
+   "hit@5 all": 0.8,
+   "hit@5 dev": 0.8148148148148148,
+   "hit@5 test": 0.782608695652174,
+   "abstained (of 10)": 9,
+   "false abstentions (of 50)": 9,
+   "what changed": "abstention rule fixed: threshold tuned on dev alone (as in runs 1-2), combined with the parameter-free grounding check; chosen after run 3's test result was seen, so this run's test abstention figures are not a clean held-out estimate"
+  },
+  {
+   "run": 5,
+   "variant": "bm25",
+   "hit@5 all": 0.8,
+   "hit@5 dev": 0.8148148148148148,
+   "hit@5 test": 0.782608695652174,
+   "abstained (of 10)": 9,
+   "false abstentions (of 50)": 16,
+   "what changed": "chunking brought to the 300-500 token design: sub-sections under 300 tokens absorb the next one (headings kept inline), tables under 120 tokens kept in the text (text chunks within 300-500: 31% -> 74%); adopted on development-half retrieval (Hit@5 up for 3 of 4 variants, MRR up for 3 of 4). Variant now chosen automatically on the development half (simplest at >= 0.80): BM25; abstention tuned for it"
+  },
+  {
+   "run": 6,
+   "variant": "bm25",
+   "hit@5 all": 0.8,
+   "hit@5 dev": 0.8148148148148148,
+   "hit@5 test": 0.782608695652174,
+   "abstained (of 10)": 9,
+   "false abstentions (of 50)": 16,
+   "what changed": "evaluation fix: confidence is now measured over the top 5 passages the tool returns, as the grounding check already was (runs 1-5 used the top 10, so the tuned threshold did not match the tool)"
+  }
+ ],
+ "operating_points": [
+  {
+   "threshold": 0.0,
+   "dev: abstained": "4/5",
+   "dev: declined answerable": "1/27",
+   "test: abstained": "2/5",
+   "test: declined answerable": "0/23",
+   "all: abstained": "6/10",
+   "all: declined answerable": "1/50"
+  },
+  {
+   "threshold": 0.55,
+   "dev: abstained": "4/5",
+   "dev: declined answerable": "1/27",
+   "test: abstained": "2/5",
+   "test: declined answerable": "0/23",
+   "all: abstained": "6/10",
+   "all: declined answerable": "1/50"
+  },
+  {
+   "threshold": 0.6,
+   "dev: abstained": "4/5",
+   "dev: declined answerable": "1/27",
+   "test: abstained": "2/5",
+   "test: declined answerable": "1/23",
+   "all: abstained": "6/10",
+   "all: declined answerable": "2/50"
+  },
+  {
+   "threshold": 0.65,
+   "dev: abstained": "4/5",
+   "dev: declined answerable": "4/27",
+   "test: abstained": "4/5",
+   "test: declined answerable": "1/23",
+   "all: abstained": "8/10",
+   "all: declined answerable": "5/50"
+  },
+  {
+   "threshold": 0.7,
+   "dev: abstained": "4/5",
+   "dev: declined answerable": "8/27",
+   "test: abstained": "4/5",
+   "test: declined answerable": "4/23",
+   "all: abstained": "8/10",
+   "all: declined answerable": "12/50"
+  },
+  {
+   "threshold": 0.759,
+   "dev: abstained": "5/5",
+   "dev: declined answerable": "9/27",
+   "test: abstained": "4/5",
+   "test: declined answerable": "7/23",
+   "all: abstained": "9/10",
+   "all: declined answerable": "16/50"
+  }
+ ],
+ "tool_examples": {
+  "What does Visa dispute condition 10.4 cover and what evidence can the merchant provide?": {
+   "status": "ok",
+   "confidence": 0.8908,
+   "ungrounded_names": [],
+   "passages": [
+    {
+     "label": "S1",
+     "doc_id": "visa_dispute_management",
+     "section": "Visa Dispute Management Guide for Merchants > Visa Dispute Categories and Conditions > What's Covered",
+     "pages": "84-85"
+    },
+    {
+     "label": "S2",
+     "doc_id": "visa_dispute_management",
+     "section": "Visa Dispute Management Guide for Merchants > Understanding Disputes > Dispute Life Cycle",
+     "pages": "13-14"
+    },
+    {
+     "label": "S3",
+     "doc_id": "visa_dispute_management",
+     "section": "Visa Dispute Management Guide for Merchants > Visa Dispute Categories and Conditions > What you can do to help prevent this dispute",
+     "pages": "28-29"
+    }
+   ]
+  },
+  "Which FATF Recommendation requires reporting suspicious transactions?": {
+   "status": "ok",
+   "confidence": 0.7633,
+   "ungrounded_names": [],
+   "passages": [
+    {
+     "label": "S1",
+     "doc_id": "fatf_recommendations",
+     "section": "18. Internal controls and foreign branches and subsidiaries *",
+     "pages": "19-20"
+    },
+    {
+     "label": "S2",
+     "doc_id": "fatf_recommendations",
+     "section": "23. DNFBPs: Other measures *",
+     "pages": "21-23"
+    },
+    {
+     "label": "S3",
+     "doc_id": "fatf_recommendations",
+     "section": "40. Other forms of international cooperation * > INTERPRETIVE NOTE TO RECOMMENDATION 20 (REPORTING OF SUSPICIOUS TRANSACTIONS)",
+     "pages": "93-94"
+    }
+   ]
+  },
+  "What is the Mastercard reason code for card-not-present fraud?": {
+   "status": "not_covered",
+   "confidence": 0.72,
+   "ungrounded_names": [],
+   "passages": []
+  },
+  "What does the Mastercard Ethoca alert service do?": {
+   "status": "not_covered",
+   "confidence": 0.5485,
+   "ungrounded_names": [
+    "Ethoca"
+   ],
+   "passages": []
+  }
+ }
+}

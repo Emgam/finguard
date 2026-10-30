@@ -1,0 +1,6 @@
+{
+ "sha256": "3331371148a215e38edc9fdfd8ec8d660280adafff610f036052d852d5ec668b",
+ "frozen_at": "2026-10-29 14:23:11",
+ "n_questions": 60,
+ "note": "written from the documents' text after parsing, before any retrieval run; gold quotes checked against chunks only"
+}

@@ -1,0 +1,221 @@
+{
+ "novelty": {
+  "decision": "keep flags as displayed indicators only",
+  "test_rates": [
+   {
+    "part": "test",
+    "flag": "flag_new_device",
+    "group": "flag on",
+    "n": 277,
+    "share_of_keyed_rows": 0.003630644209974441,
+    "frauds": 12,
+    "fraud_rate": 0.04332129963898917,
+    "lo": 0.02495233412104915,
+    "hi": 0.07418397616916428
+   },
+   {
+    "part": "test",
+    "flag": "flag_new_device",
+    "group": "flag off",
+    "n": 76018,
+    "share_of_keyed_rows": 0.9963693557900256,
+    "frauds": 1726,
+    "fraud_rate": 0.022705148780551975,
+    "lo": 0.021670076350285606,
+    "hi": 0.023788459345066456
+   },
+   {
+    "part": "test",
+    "flag": "flag_burst_first_day",
+    "group": "flag on",
+    "n": 2783,
+    "share_of_keyed_rows": 0.036476833344255846,
+    "frauds": 95,
+    "fraud_rate": 0.03413582464965864,
+    "lo": 0.028005888347049156,
+    "hi": 0.04155012804082162
+   },
+   {
+    "part": "test",
+    "flag": "flag_burst_first_day",
+    "group": "flag off",
+    "n": 73512,
+    "share_of_keyed_rows": 0.9635231666557441,
+    "frauds": 1643,
+    "fraud_rate": 0.02235009250190445,
+    "lo": 0.021306205652043202,
+    "hi": 0.02344389892949777
+   },
+   {
+    "part": "test",
+    "flag": "flag_amount_above_max",
+    "group": "flag on",
+    "n": 457,
+    "share_of_keyed_rows": 0.005989907595517399,
+    "frauds": 10,
+    "fraud_rate": 0.02188183807439825,
+    "lo": 0.011928235145026224,
+    "hi": 0.039806677675344154
+   },
+   {
+    "part": "test",
+    "flag": "flag_amount_above_max",
+    "group": "flag off",
+    "n": 75838,
+    "share_of_keyed_rows": 0.9940100924044826,
+    "frauds": 1728,
+    "fraud_rate": 0.022785411007674252,
+    "lo": 0.0217473069140984,
+    "hi": 0.023871859590951238
+   }
+  ]
+ },
+ "isolation_forest": [
+  {
+   "label": "Isolation Forest, curated features",
+   "pr_auc": 0.037913528859646634,
+   "lo": 0.03643623751029368,
+   "hi": 0.039817132985976396,
+   "precision_at_1": 0.0,
+   "valid_pr_auc": 0.041186547323168524,
+   "overlap_top1_with_lightgbm": 0.0
+  },
+  {
+   "label": "Isolation Forest, all features",
+   "pr_auc": 0.11735334955220708,
+   "lo": 0.11127396439974016,
+   "hi": 0.1235422184869578,
+   "precision_at_1": 0.00117096018735363,
+   "valid_pr_auc": 0.17462652556669492,
+   "overlap_top1_with_lightgbm": 0.00117096018735363
+  },
+  {
+   "label": "Logistic regression v2 (baseline)",
+   "pr_auc": 0.4585504308967506,
+   "lo": 0.4396256306908063,
+   "hi": 0.47671075716815026,
+   "precision_at_1": 0.84192037470726,
+   "valid_pr_auc": NaN,
+   "overlap_top1_with_lightgbm": NaN
+  },
+  {
+   "label": "LightGBM (main)",
+   "pr_auc": 0.5804827091167077,
+   "lo": 0.5619810574324593,
+   "hi": 0.5972937778920836,
+   "precision_at_1": 0.892271662763466,
+   "valid_pr_auc": NaN,
+   "overlap_top1_with_lightgbm": NaN
+  }
+ ],
+ "iforest_feature": {
+  "test_pr_auc": 0.5802689137862521,
+  "paired_difference": {
+   "difference": -0.00021379533045562393,
+   "ci95": [
+    -0.003973037967164914,
+    0.00333251833065633
+   ],
+   "share_resamples_not_better": 0.546
+  },
+  "gain_rank": 1
+ },
+ "baseline_variants": [
+  {
+   "variant": "review_style",
+   "inputs": 502,
+   "C": 0.01,
+   "valid_pr_auc": 0.4702498093955252,
+   "test_pr_auc": 0.4564057442783199,
+   "recall@5%": 0.49966599866399464,
+   "meaning": "design-review preprocessing: raw D columns and card/address codes as numbers"
+  },
+  {
+   "variant": "d_reexpressed",
+   "inputs": 502,
+   "C": 0.01,
+   "valid_pr_auc": 0.47085067636337474,
+   "test_pr_auc": 0.45816234733589306,
+   "recall@5%": 0.5020040080160321,
+   "meaning": "same, trending D columns as day - D"
+  },
+  {
+   "variant": "no_codes",
+   "inputs": 494,
+   "C": 0.01,
+   "valid_pr_auc": 0.4688106031691433,
+   "test_pr_auc": 0.45742572984448,
+   "recall@5%": 0.501002004008016,
+   "meaning": "same, card/address codes removed"
+  },
+  {
+   "variant": "both",
+   "inputs": 494,
+   "C": 0.01,
+   "valid_pr_auc": 0.46937723799045716,
+   "test_pr_auc": 0.4585504308967506,
+   "recall@5%": 0.5026720106880428,
+   "meaning": "trending D re-expressed and codes removed"
+  },
+  {
+   "variant": "phase2_lr (notebook 05)",
+   "inputs": 621,
+   "C": 0.01,
+   "valid_pr_auc": 0.44815404565297967,
+   "test_pr_auc": 0.41938132115972526,
+   "recall@5%": 0.459251837007348,
+   "meaning": "Phase 2 preprocessing: log only for heavy tails, duplicates dropped, frequencies for codes"
+  }
+ ],
+ "baseline_v2": {
+  "test": {
+   "n": 85430,
+   "frauds": 2994,
+   "prevalence": 0.03504623668500527,
+   "pr_auc": 0.4585504308967506,
+   "roc_auc": 0.8682779577302017,
+   "precision@1%": 0.84192037470726,
+   "recall@1%": 0.24014696058784235,
+   "precision@5%": 0.3522940074906367,
+   "recall@5%": 0.5026720106880428
+  },
+  "ci95": [
+   0.4396256306908063,
+   0.47671075716815026
+  ],
+  "paired_lightgbm_minus_v2": {
+   "pr_auc": {
+    "difference": 0.12193227821995711,
+    "ci95": [
+     0.10896494069610908,
+     0.13548059704652016
+    ],
+    "share_resamples_not_better": 0.0
+   },
+   "recall@1%": {
+    "difference": 0.01436205744822977,
+    "ci95": [
+     0.009108592876554824,
+     0.021791127852186846
+    ],
+    "share_resamples_not_better": 0.0
+   },
+   "recall@5%": {
+    "difference": 0.12124248496993983,
+    "ci95": [
+     0.10655230549920501,
+     0.13669158313245036
+    ],
+    "share_resamples_not_better": 0.0
+   }
+  }
+ },
+ "scorer": {
+  "model_version": "lgbm_numeric-v1",
+  "online_vs_batch_max_abs_diff": 0.0
+ },
+ "gate": {
+  "passed": true,
+  "model_id": "lgbm_numeric-v1"
+ }
+}

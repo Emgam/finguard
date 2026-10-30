@@ -7,6 +7,8 @@ scikit-learn>=1.4
 scipy>=1.11
 matplotlib>=3.8
 lightgbm>=4.3          # Phase 2 main model (built-in TreeSHAP; the shap package is not needed)
+pdfplumber>=0.10       # Phase 3 PDF parsing
+# optional: sentence-transformers>=2.7 (dense retrieval, cross-encoder), mlflow>=2.12 (registry)
 # development
 jupyter>=1.0
 nbconvert>=7

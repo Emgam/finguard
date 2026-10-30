@@ -139,7 +139,7 @@
  },
  "calibration": {
   "LightGBM, uncalibrated": {
-   "brier": 0.0221321448688862,
+   "brier": 0.022132144868886195,
    "ece": 0.017775763434070304,
    "mean_predicted": 0.01727047325093497,
    "observed_rate": 0.03504623668500527,

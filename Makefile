@@ -3,8 +3,11 @@ NB = notebooks/01_data_validation.ipynb notebooks/02_eda_missingness_and_distrib
      notebooks/03_eda_temporal_drift_leakage.ipynb notebooks/04_feature_inventory_and_plan.ipynb
 NB2 = notebooks/05_split_features_baseline.ipynb notebooks/06_lightgbm_calibration_bands.ipynb \
       notebooks/07_explanations.ipynb notebooks/08_robustness_and_scorecard.ipynb
+NB2B = notebooks/09_phase2_additions.ipynb
+NB3 = notebooks/10_knowledge_base.ipynb
+RUN_NB = $(shell command -v jupyter >/dev/null 2>&1 && echo "jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=-1" || echo "$(PY) tools/run_notebooks.py")
 
-.PHONY: install data validate notebooks eda eda-fallback test all all-phase2 phase2 phase2-notebooks phase2-fallback
+.PHONY: install data validate notebooks eda eda-fallback test all all-phase2 phase2 phase2-notebooks phase2-fallback phase2b phase2b-notebook gate glossary kb kb-eval kb-notebook all-phase3
 
 install:            ## editable install with dev tools
 	$(PY) -m pip install -e ".[dev]"
@@ -43,3 +46,28 @@ test:
 all: data validate eda test
 
 all-phase2: phase2 phase2-notebooks test
+
+phase2b:            ## Phase 2 additions: novelty flags, Isolation Forest, baseline check, strengthened baseline
+	$(PY) -m finguard.phase2b
+
+phase2b-notebook:   ## notebook 09 (after `make phase2b`); Jupyter if installed, else the headless runner
+	$(PY) tools/build_notebooks.py 09
+	$(RUN_NB) $(NB2B)
+
+gate:               ## model quality gate (exit 1 blocks a release); registers the model with its report
+	$(PY) -m finguard.gate --register
+
+glossary:           ## regenerate the feature and reason-code glossary (a knowledge-base document)
+	$(PY) -m finguard.rag.glossary
+
+kb:                 ## Phase 3: parse, chunk and index the registered documents
+	$(PY) -m finguard.rag build
+
+kb-eval:            ## Phase 3: retrieval evaluation on the frozen question set
+	$(PY) -m finguard.rag evaluate
+
+kb-notebook:        ## notebook 10 (after `make kb kb-eval`)
+	$(PY) tools/build_notebooks.py 10
+	$(RUN_NB) $(NB3)
+
+all-phase3: kb kb-eval kb-notebook test

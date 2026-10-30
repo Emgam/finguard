@@ -11,4 +11,4 @@ High-band fraud rate (test),0.906,0.9005037783375315,0.878-0.919,higher,within 9
 Medium-band fraud rate (test),0.267,0.30652010991756184,0.292-0.321,higher,met
 Low-band fraud rate (test),0.015,0.013046767452531843,0.012-0.014,lower,met
 "Top-5 family overlap, 5 retrains",0.6,0.9133708567854909,,higher,met
-Brier score: calibrated below uncalibrated,0.0221321448688862,0.020823114106381088,,lower,met
+Brier score: calibrated below uncalibrated,0.022132144868886195,0.020823114106381088,,lower,met

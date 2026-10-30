@@ -10,6 +10,7 @@ not required.
 """
 from __future__ import annotations
 
+import os
 import time
 from dataclasses import dataclass, field
 
@@ -36,7 +37,7 @@ BASE_PARAMS = {
     "metric": "average_precision",
     "deterministic": True,
     "force_row_wise": True,
-    "num_threads": 2,
+    "num_threads": int(os.environ.get("FINGUARD_THREADS", "2")),   # 2 reproduces the delivered results
     "verbose": -1,
 }
 

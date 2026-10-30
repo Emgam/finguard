@@ -270,3 +270,135 @@ def fig24_reason_stability(overlap: np.ndarray, freq: pd.DataFrame, target: floa
     fig.subplots_adjust(wspace=0.72, left=0.07, bottom=0.15)
     S.save(fig, "fig24_reason_stability")
     return fig
+
+
+# ----------------------------------------------------------------------------- 25
+def fig25_novelty_flags(rates: pd.DataFrame):
+    """rates: test-month rows with flag, group ('flag on'/'flag off'), n, fraud_rate, lo, hi."""
+    from finguard.features.novelty import FLAG_TEXT, FLAGS
+    fig, ax = S.new(10.5, 4.6)
+    ypos = np.arange(len(FLAGS))[::-1]
+    for f, y in zip(FLAGS, ypos):
+        on = rates[(rates.flag == f) & (rates.group == "flag on")].iloc[0]
+        off = rates[(rates.flag == f) & (rates.group == "flag off")].iloc[0]
+        ax.plot([off.fraud_rate, on.fraud_rate], [y, y], color=S.GRID, linewidth=3, zorder=1)
+        ax.errorbar(on.fraud_rate, y, xerr=[[on.fraud_rate - on.lo], [on.hi - on.fraud_rate]], fmt="o", color=S.ACCENT,
+                    markersize=8, markeredgecolor=S.SURFACE, markeredgewidth=1.5, elinewidth=1, capsize=3, zorder=3)
+        ax.plot(off.fraud_rate, y, "o", color=S.GREY_DARK, markersize=8, markeredgecolor=S.SURFACE, markeredgewidth=1.5, zorder=3)
+        ax.text(max(on.hi, off.fraud_rate) + 0.003, y, f"flagged {on.fraud_rate:.1%} (n = {int(on.n):,}) vs not {off.fraud_rate:.1%}",
+                va="center", fontsize=8.5, color=S.INK2)
+    ax.set_yticks(ypos, [FLAG_TEXT[f].split(" (")[0].split(":")[0] for f in FLAGS])
+    ax.set_xlim(0, float(rates[rates.group == "flag on"].hi.max()) * 1.9)
+    ax.xaxis.set_major_formatter(lambda v, _: f"{v * 100:.0f}%")
+    ax.set_xlabel("Fraud rate on the test month (transactions with a proxy-entity key); blue = flag on, 95% Wilson interval")
+    S.grid(ax, "x")
+    S.headline(fig, "Novelty flags mark small, riskier groups but add nothing to the score: shown to analysts, not blended",
+               "Rules on each proxy entity's earlier transactions; thresholds fixed in advance; combiner fitted on validation did not help",
+               source=SOURCE2)
+    fig.subplots_adjust(left=0.36, bottom=0.17)
+    S.save(fig, "fig25_novelty_flags")
+    return fig
+
+
+# ----------------------------------------------------------------------------- 26
+def fig26_unsupervised(t: pd.DataFrame, prevalence: float):
+    """t: rows = label, pr_auc, lo, hi, precision_at_1 (fraction), highlight bool."""
+    fig, (a1, a2) = S.new(11.5, 4.8, ncols=2, gridspec_kw={"width_ratios": [1.3, 1]})
+    ypos = np.arange(len(t))[::-1]
+    colors = [S.ACCENT if h else S.GREY for h in t.highlight]
+    a1.barh(ypos, t.pr_auc, height=0.6, color=colors, zorder=2)
+    a1.errorbar(t.pr_auc, ypos, xerr=[t.pr_auc - t.lo, t.hi - t.pr_auc], fmt="none", ecolor=S.INK2, elinewidth=0.9, capsize=3, zorder=3)
+    _labels(a1, ypos, t.hi, [f"{v:.3f}" for v in t.pr_auc], float(t.hi.max()))
+    a1.set_yticks(ypos, t.label)
+    a1.set_xlim(0, float(t.hi.max()) * 1.25)
+    S.ref_line(a1, prevalence, f"random {prevalence:.3f}")
+    a1.set_xlabel("PR-AUC on the test month (95% bootstrap interval)")
+    S.grid(a1, "x")
+    a2.barh(ypos, t.precision_at_1, height=0.6, color=colors, zorder=2)
+    _labels(a2, ypos, t.precision_at_1, [f"{v:.1%}" for v in t.precision_at_1], 1.0)
+    a2.set_yticks(ypos, [""] * len(t))
+    a2.set_xlim(0, 1.15)
+    a2.xaxis.set_major_formatter(lambda v, _: f"{v * 100:.0f}%")
+    a2.set_title("Share of fraud among the top 1% by score", fontsize=10)
+    S.grid(a2, "x")
+    iso = t[t.label.str.contains("all features")].iloc[0]
+    S.headline(fig, f"Isolation Forest ranks some fraud above random (PR-AUC {iso.pr_auc:.3f}) but its top 1% is "
+                    f"{iso.precision_at_1:.1%} fraud: it stays out of the score",
+               "Isolation Forest fitted on training-period legitimate transactions; supervised models for comparison",
+               source=SOURCE2, top=0.82)
+    fig.subplots_adjust(left=0.27, wspace=0.08, bottom=0.17)
+    S.save(fig, "fig26_isolation_forest")
+    return fig
+
+
+# ----------------------------------------------------------------------------- 27
+SOURCE3 = "Source: FinGuard knowledge base (registered documents), frozen question set, FinGuard Phase 3"
+
+
+def fig27_retrieval(summary: pd.DataFrame, by_split: pd.DataFrame | None = None, chosen: str | None = None,
+                    target: float = 0.80):
+    """summary: rows = variant, hit_at_5, mrr_at_10 (answerable questions, both halves);
+    by_split: variant, split, hit_at_5; chosen: the variant selected on the development half."""
+    names = {"bm25": "BM25 (keyword)", "dense": "Dense (vector)", "hybrid": "Hybrid (rank fusion)",
+             "hybrid_rerank": "Hybrid + re-ranking"}
+    t = summary.set_index("variant").loc[[v for v in names if v in set(summary.variant)]]
+    chosen = chosen or t.hit_at_5.idxmax()
+    fig, ax = S.new(10.5, 4.6)
+    y = np.arange(len(t))[::-1]
+    ax.barh(y, t.hit_at_5, height=0.55, color=[S.ACCENT if v == chosen else S.GREY for v in t.index], zorder=2,
+            label="Hit@5, all 50 questions")
+    split = by_split.pivot(index="variant", columns="split", values="hit_at_5") if by_split is not None else None
+    if split is not None:
+        ax.plot(split.loc[t.index, "dev"], y + 0.13, "o", color=S.INK, markersize=5.5, zorder=3, label="development half")
+        ax.plot(split.loc[t.index, "test"], y - 0.13, "s", color=S.INK, markerfacecolor=S.SURFACE, markersize=5.5, zorder=3,
+                label="held-out half")
+    for v, yi in zip(t.index, y):
+        txt = f"all {t.loc[v, 'hit_at_5']:.2f}"
+        if split is not None:
+            txt += f" · dev {split.loc[v, 'dev']:.2f} · test {split.loc[v, 'test']:.2f}"
+        txt += f" · MRR {t.loc[v, 'mrr_at_10']:.2f}"
+        hi = max(t.loc[v, "hit_at_5"], *(split.loc[v].tolist() if split is not None else []))
+        ax.text(hi + 0.02, yi, txt, va="center", fontsize=8.5, color=S.INK2)
+    ax.set_yticks(y, [names[v] + (" (chosen)" if v == chosen else "") for v in t.index])
+    ax.set_xlim(0, 1.45)
+    ax.set_xticks(np.arange(0, 1.01, 0.2))
+    S.ref_line(ax, target, f"target {target:.2f}")
+    ax.set_xlabel("Share of answerable questions with a gold passage in the top 5")
+    ax.legend(loc="upper center", bbox_to_anchor=(0.45, -0.17), ncol=3, fontsize=8, frameon=False)
+    S.grid(ax, "x")
+    h = t.loc[chosen, "hit_at_5"]
+    S.headline(fig, f"{names[chosen]} retrieval: Hit@5 {h:.2f} on all answerable questions "
+                    f"({'meets' if h >= target - 1e-9 else 'misses'} the {target:.2f} target)",
+               "Variant chosen on the development half (simplest one at or above the target there); "
+               "the held-out half is reported, not used", source=SOURCE3)
+    fig.subplots_adjust(left=0.25, bottom=0.25)
+    S.save(fig, "fig27_retrieval_variants")
+    return fig
+
+
+def fig28_abstention(conf: np.ndarray, answerable: np.ndarray, flagged: np.ndarray, threshold: float, correct: int, total: int,
+                     false_abstentions: int, n_answerable: int):
+    """One point per question: confidence on x; filled = passes the grounding check, ring = a
+    name in the question is in none of the returned passages (abstains whatever its confidence)."""
+    fig, ax = S.new(10.5, 4.4)
+    rs = np.random.RandomState(0)
+    for yv, mask, color, lab in [(1, answerable, S.GREY_DARK, "answerable"), (0, ~answerable, S.ACCENT, "unanswerable")]:
+        for f, marker_kw, lab2 in [(False, {"color": color, "edgecolor": S.SURFACE}, "names grounded"),
+                                    (True, {"facecolor": S.SURFACE, "edgecolor": color}, "a name not in any passage")]:
+            m = mask & (flagged == f)
+            ax.scatter(conf[m], yv + rs.uniform(-0.13, 0.13, m.sum()), s=40, linewidth=1.4, zorder=3,
+                       label=f"{lab}, {lab2}", **marker_kw)
+    ax.axvline(threshold, color=S.INK2, linestyle=(0, (4, 3)), linewidth=1)
+    ax.text(threshold, 1.36, f" abstain below {threshold:.3f}", fontsize=8.5, color=S.INK2, va="bottom")
+    ax.set_yticks([1, 0], ["answerable", "unanswerable"])
+    ax.set_ylim(-0.5, 1.55)
+    ax.set_xlabel("Retrieval confidence (best re-rank score among the top 5)")
+    ax.legend(loc="upper center", bbox_to_anchor=(0.45, -0.17), fontsize=7.5, ncol=4, frameon=False)
+    S.grid(ax, "x")
+    S.headline(fig, f"Abstention: {correct} of {total} unanswerable questions get \"not covered\"; "
+                    f"{false_abstentions} of {n_answerable} answerable ones are declined",
+               "Abstain when a name in the question is in no returned passage (rings) or confidence is below the "
+               "threshold tuned on the development half", source=SOURCE3)
+    fig.subplots_adjust(left=0.14, bottom=0.26)
+    S.save(fig, "fig28_abstention")
+    return fig
