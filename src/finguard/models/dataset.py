@@ -80,7 +80,7 @@ def save(fs: FeatureSet, codes_as: str) -> Path:
     (d / "summary.json").write_text(json.dumps({
         "scheme": fs.scheme, "codes_as": codes_as, "shape": list(fs.X.shape), "n_categorical": len(fs.categorical),
         "fit_window_days": list(fs.builder.fit_days), "fit_rows": fs.builder.fit_rows_,
-        "n_nan_blocks": len(fs.builder.blocks_), "n_missing_patterns": len(fs.builder.patterns_)}, indent=1))
+        "n_nan_blocks": len(fs.builder.blocks_), "n_missing_patterns": len(fs.builder.patterns_)}, indent=1), encoding="utf-8")
     return d
 
 
@@ -107,7 +107,7 @@ def main() -> None:
     t0 = time.time()
     d = save(build(a.scheme, a.codes), a.codes)
     print(f"wrote {d} in {time.time() - t0:.0f}s")
-    print((d / "summary.json").read_text())
+    print((d / "summary.json").read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

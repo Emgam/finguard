@@ -26,7 +26,7 @@ from finguard.models import dataset
 
 pd.set_option("display.max_columns", 30, "display.width", 200, "display.max_colwidth", 120)
 T, A = config.TABLE_DIR, phase2.ART
-load = lambda p: json.loads((A / p / "info.json").read_text())
+load = lambda p: json.loads((A / p / "info.json").read_text(encoding="utf-8"))
 fs = dataset.load("main", "numeric")
 y_te = fs.y[fs.masks["test"]].astype(int)
 main = phase2.load_preds("lgbm_numeric")
@@ -71,7 +71,7 @@ for v, label in (("curated", "Isolation Forest, curated features"), ("all", "Iso
                      "precision_at_1": r["test"]["precision@1%"], "valid_pr_auc": r["valid"]["pr_auc"],
                      "overlap_top1_with_lightgbm": r["test"]["overlap_top1pct_with_lightgbm"], "highlight": False})
 lr2 = load("lr_v2")
-res6 = json.loads((T / "phase2_results.json").read_text())
+res6 = json.loads((T / "phase2_results.json").read_text(encoding="utf-8"))
 iso_rows.append({"label": "Logistic regression v2 (baseline)", "pr_auc": lr2["test"]["pr_auc"], "lo": lr2["test_ci95"]["pr_auc"][0],
                  "hi": lr2["test_ci95"]["pr_auc"][1], "precision_at_1": lr2["test"]["precision@1%"], "highlight": False})
 iso_rows.append({"label": "LightGBM (main)", "pr_auc": res6["test_metrics"]["LightGBM"]["pr_auc"],
@@ -166,5 +166,5 @@ summary = {"novelty": {"decision": c["decision"], "test_rates": test_rates.to_di
            "baseline_v2": {"test": lr2["test"], "ci95": lr2["test_ci95"]["pr_auc"], "paired_lightgbm_minus_v2": p},
            "scorer": {"model_version": sc.model_version, "online_vs_batch_max_abs_diff": diff},
            "gate": {"passed": report["passed"], "model_id": entry["model_id"]}}
-(T / "phase2b_summary.json").write_text(json.dumps(summary, indent=1, default=float))
+(T / "phase2b_summary.json").write_text(json.dumps(summary, indent=1, default=float), encoding="utf-8")
 print("saved reports/tables/phase2b_summary.json")

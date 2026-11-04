@@ -27,7 +27,7 @@ from finguard.models import dataset
 pd.set_option("display.max_columns", 30, "display.width", 180)
 T = config.TABLE_DIR
 B = 1000                                                         # bootstrap resamples
-sel = json.loads((phase2.ART / "selection.json").read_text())
+sel = json.loads((phase2.ART / "selection.json").read_text(encoding="utf-8"))
 codes = sel["codes_as"]
 fs = dataset.load("main", codes)
 y_va, y_te = fs.y[fs.masks["valid"]].astype(int), fs.y[fs.masks["test"]].astype(int)
@@ -124,7 +124,7 @@ out = {"selection": sel, "test_metrics": res.to_dict("index"), "bootstrap_ci95":
        "bands": {"thresholds_raw": {"high": bands.high, "medium": bands.medium},
                  "thresholds_calibrated": {"high": float(iso.predict([bands.high])[0]), "medium": float(iso.predict([bands.medium])[0])},
                  "valid": bt_va.to_dict("records"), "test": bt_te.to_dict("records")}}
-(T / "phase2_results.json").write_text(json.dumps(out, indent=1, default=float))
+(T / "phase2_results.json").write_text(json.dumps(out, indent=1, default=float), encoding="utf-8")
 pd.concat([bt_va.assign(period="validation"), bt_te.assign(period="test")]).to_csv(T / "phase2_bands.csv", index=False)
 rel_cal.assign(kind="isotonic").pipe(lambda d: pd.concat([d, rel_raw.assign(kind="uncalibrated")])).to_csv(T / "phase2_reliability.csv", index=False)
 res.to_csv(T / "phase2_test_metrics.csv")
@@ -138,7 +138,7 @@ print("saved phase2_results.json, phase2_bands.csv, phase2_reliability.csv, phas
 # %%
 import pickle
 bundle = {"builder": fs.builder, "model_file": f"artifacts/phase2/lgbm_{codes}/model.txt",
-          "columns": json.loads((phase2.ART / f"lgbm_{codes}" / "columns.json").read_text()),
+          "columns": json.loads((phase2.ART / f"lgbm_{codes}" / "columns.json").read_text(encoding="utf-8")),
           "isotonic": iso, "bands": bands, "codes_as": codes,
           "note": "proxy entity = card1 + addr1 + first-seen day; heuristic grouping, not a customer"}
 with open(phase2.ART / "model_bundle.pkl", "wb") as f:

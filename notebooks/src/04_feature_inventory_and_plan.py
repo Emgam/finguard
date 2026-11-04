@@ -142,7 +142,7 @@ plan
 # ## 4. Phase 2 entry checklist
 
 # %%
-manifest = json.loads((config.INTERIM_DIR / "manifest.json").read_text())
+manifest = json.loads((config.INTERIM_DIR / "manifest.json").read_text(encoding="utf-8"))
 val = pd.read_csv(T / "validation_results.csv")
 checks = pd.DataFrame([
     ["Raw files match the official release", all(v["matches_release"] for v in manifest["files"].values() if "matches_release" in v)],

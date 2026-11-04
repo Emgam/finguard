@@ -53,7 +53,7 @@ def _corpus(tmp: Path) -> Path:
          "tier": 1, "type": "guide", "authority": "test", "language": "en", "file": "a.md", "source": "project", "sha256": None},
         {"doc_id": "b", "title": "Reporting obligations", "publisher": "Test", "url": "-", "published": "2023", "jurisdiction": "International",
          "tier": 2, "type": "standard", "authority": "test", "language": "en", "file": "b.md", "source": "project", "sha256": None}]}
-    (tmp / "registry.json").write_text(json.dumps(reg))
+    (tmp / "registry.json").write_text(json.dumps(reg), encoding="utf-8")
     return tmp
 
 
@@ -127,9 +127,9 @@ def test_build_search_filters_citations_and_abstention():
 def test_registry_rejects_changed_files():
     with tempfile.TemporaryDirectory() as d:
         tmp = _corpus(Path(d))
-        reg = json.loads((tmp / "registry.json").read_text())
+        reg = json.loads((tmp / "registry.json").read_text(encoding="utf-8"))
         reg["documents"][0]["sha256"] = "0" * 64
-        (tmp / "registry.json").write_text(json.dumps(reg))
+        (tmp / "registry.json").write_text(json.dumps(reg), encoding="utf-8")
         _, report = corpus.build(registry=tmp / "registry.json", project_dir=tmp / "docs", raw_dir=tmp / "raw",
                                  index_dir=tmp / "index", embedder=LsaEmbedder(dims=8))
         assert [m["doc_id"] for m in report["hash_mismatch"]] == ["a"]
@@ -146,13 +146,13 @@ def test_evaluation_maps_gold_quotes_and_refuses_unfrozen_changes():
                "gold": [{"doc_id": "a", "quote": "respond within 30 days"}]},
               {"id": "u1", "question": "What is the boiling point of ethanol?", "answerable": False, "split": "dev", "gold": []}]
         qpath, fpath = tmp / "q.jsonl", tmp / "frozen.json"
-        qpath.write_text("\n".join(json.dumps(q) for q in qs))
+        qpath.write_text("\n".join(json.dumps(q) for q in qs), encoding="utf-8")
         ev.freeze(qpath, fpath)
         ev.check_frozen(qpath, fpath)
         res = ev.evaluate(index, ev.load_questions(qpath), variants=("bm25", "hybrid_rerank"))
         assert res["unmapped_gold"] == []
         assert res["summary"].set_index("variant").loc["bm25", "hit_at_5"] == 1.0
-        qpath.write_text(qpath.read_text() + "\n")
+        qpath.write_text(qpath.read_text(encoding="utf-8") + "\n")
         try:
             ev.check_frozen(qpath, fpath)
             raise AssertionError("a changed question file must be refused")
@@ -218,7 +218,25 @@ def test_register_dir_places_files_by_hash_whatever_their_name():
             {"doc_id": "pub_b", "title": "B", "publisher": "P", "url": "https://example.org/b.pdf", "published": "2024",
              "jurisdiction": "EU", "tier": 1, "type": "guidelines", "authority": "x", "language": "en", "file": "pub_b.pdf",
              "sha256": "0" * 64}]}
-        (tmp / "registry.json").write_text(json.dumps(reg))
+        (tmp / "registry.json").write_text(json.dumps(reg), encoding="utf-8")
         out = corpus.register_dir(downloads, registry=tmp / "registry.json", raw_dir=tmp / "raw")
         assert out == {"placed": {"pub_a": "Final_Report_v2 (1).pdf"}, "missing": ["pub_b"]}
         assert (tmp / "raw" / "pub_a.pdf").read_bytes() == b"%PDF-1.4 published document A"
+
+
+def test_tool_uses_the_reranker_and_index_the_threshold_was_tuned_on():
+    from finguard.rag.tool import deployed
+    with tempfile.TemporaryDirectory() as d:
+        index = _index(Path(d))
+        cfg = {"variant": "bm25", "threshold": 0.5, "grounding_check": True, "reranker": "lexical-v1",
+               "index_version": index.version}
+        (Path(d) / "index" / "abstention.json").write_text(json.dumps(cfg), encoding="utf-8")
+        retriever, variant = deployed(Path(d) / "index")
+        assert variant == "bm25" and retriever.reranker.name == "lexical-v1" and retriever.threshold == 0.5
+        cfg["index_version"] = "rebuilt-since"
+        (Path(d) / "index" / "abstention.json").write_text(json.dumps(cfg), encoding="utf-8")
+        try:
+            deployed(Path(d) / "index")
+            raise AssertionError("a threshold tuned on another index must be refused")
+        except RuntimeError:
+            pass

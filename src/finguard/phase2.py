@@ -52,7 +52,7 @@ def _write(d: Path, info: dict, preds: dict | None = None) -> None:
     d.mkdir(parents=True, exist_ok=True)
     if preds is not None:
         np.savez_compressed(d / "preds.npz", **preds)
-    (d / "info.json").write_text(json.dumps(info, indent=1, default=float))
+    (d / "info.json").write_text(json.dumps(info, indent=1, default=float), encoding="utf-8")
 
 
 def load_preds(name: str) -> dict[str, np.ndarray]:
@@ -61,11 +61,11 @@ def load_preds(name: str) -> dict[str, np.ndarray]:
 
 
 def load_info(name: str) -> dict:
-    return json.loads((ART / name / "info.json").read_text())
+    return json.loads((ART / name / "info.json").read_text(encoding="utf-8"))
 
 
 def selected_codes() -> str:
-    return json.loads((ART / "selection.json").read_text())["codes_as"]
+    return json.loads((ART / "selection.json").read_text(encoding="utf-8"))["codes_as"]
 
 
 def _score_split(model: lgbm.TrainedModel, fs: dataset.FeatureSet) -> dict[str, np.ndarray]:
@@ -93,7 +93,7 @@ def _fit_and_save(name: str, fs: dataset.FeatureSet, force: bool, save_model: bo
     if save_model:
         d.mkdir(parents=True, exist_ok=True)
         model.booster.save_model(str(d / "model.txt"), num_iteration=model.best_iteration)
-        with open(d / "columns.json", "w") as f:
+        with open(d / "columns.json", "w", encoding="utf-8") as f:
             json.dump({"columns": model.columns, "categorical": model.categorical}, f)
     _write(d, info, preds)
     log(f"{name}: best_iter={model.best_iteration} valid PR-AUC={info['valid']['pr_auc']:.4f} ({model.seconds:.0f}s)")
@@ -120,7 +120,7 @@ def stage_select(force: bool) -> None:
     vals = {c: load_info(f"lgbm_{c}")["valid"]["pr_auc"] for c in ("numeric", "category")}
     choice = max(vals, key=vals.get)
     (ART / "selection.json").write_text(json.dumps({
-        "codes_as": choice, "valid_pr_auc": vals, "rule": "higher validation PR-AUC; test month not used"}, indent=1))
+        "codes_as": choice, "valid_pr_auc": vals, "rule": "higher validation PR-AUC; test month not used"}, indent=1), encoding="utf-8")
     log(f"select: codes_as={choice} {vals}")
 
 
@@ -195,7 +195,7 @@ def stage_shap(force: bool) -> None:
     alert = test_idx[bands.assign(test_raw) != "Low"]
     rs = np.random.RandomState(config.RANDOM_SEED)
     sample = np.sort(rs.choice(test_idx, SHAP_SAMPLE, replace=False))
-    cols = json.loads((ART / f"lgbm_{codes}" / "columns.json").read_text())["columns"]
+    cols = json.loads((ART / f"lgbm_{codes}" / "columns.json").read_text(encoding="utf-8"))["columns"]
     booster = lgb.Booster(model_file=str(ART / f"lgbm_{codes}" / "model.txt"))
     X_alert = np.asarray(fs.X[alert][:, fs.cols(cols)])
     X_sample = np.asarray(fs.X[sample][:, fs.cols(cols)])

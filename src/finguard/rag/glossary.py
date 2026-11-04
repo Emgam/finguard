@@ -32,7 +32,7 @@ FEATURE_DEFINITIONS = {
 
 
 def _load(path: Path) -> dict:
-    return json.loads(path.read_text()) if path.exists() else {}
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
 
 
 def render() -> str:

@@ -140,7 +140,7 @@
  ],
  "abstention": {
   "rule": "abstain if a name in the question is in no returned passage, or if confidence < threshold (threshold tuned on dev alone)",
-  "threshold": 0.7593402169507937,
+  "threshold": 0.7593402169507979,
   "dev": {
    "unanswerable": 5,
    "correct_abstentions": 5,
@@ -165,7 +165,7 @@
  },
  "ablations": {
   "threshold_only": {
-   "threshold": 0.7593402169507937,
+   "threshold": 0.7593402169507979,
    "grounding_check": false,
    "dev": {
     "unanswerable": 5,
@@ -372,6 +372,16 @@
    "abstained (of 10)": 9,
    "false abstentions (of 50)": 16,
    "what changed": "evaluation fix: confidence is now measured over the top 5 passages the tool returns, as the grounding check already was (runs 1-5 used the top 10, so the tuned threshold did not match the tool)"
+  },
+  {
+   "run": 7,
+   "variant": "bm25",
+   "hit@5 all": 0.8,
+   "hit@5 dev": 0.8148148148148148,
+   "hit@5 test": 0.782608695652174,
+   "abstained (of 10)": 8,
+   "false abstentions (of 50)": 4,
+   "what changed": "neural embedder and cross-encoder"
   }
  ],
  "operating_points": [
@@ -433,7 +443,7 @@
  "tool_examples": {
   "What does Visa dispute condition 10.4 cover and what evidence can the merchant provide?": {
    "status": "ok",
-   "confidence": 0.8908,
+   "confidence": 8.7244,
    "ungrounded_names": [],
    "passages": [
     {
@@ -458,7 +468,7 @@
   },
   "Which FATF Recommendation requires reporting suspicious transactions?": {
    "status": "ok",
-   "confidence": 0.7633,
+   "confidence": 9.7995,
    "ungrounded_names": [],
    "passages": [
     {
@@ -482,14 +492,33 @@
    ]
   },
   "What is the Mastercard reason code for card-not-present fraud?": {
-   "status": "not_covered",
-   "confidence": 0.72,
+   "status": "ok",
+   "confidence": 2.1305,
    "ungrounded_names": [],
-   "passages": []
+   "passages": [
+    {
+     "label": "S1",
+     "doc_id": "visa_dispute_management",
+     "section": "Visa Dispute Management Guide for Merchants > Visa Dispute Categories and Conditions > What you can do to help prevent this dispute",
+     "pages": "28-29"
+    },
+    {
+     "label": "S2",
+     "doc_id": "finguard_feature_reason_glossary",
+     "section": "FinGuard feature and reason-code glossary",
+     "pages": null
+    },
+    {
+     "label": "S3",
+     "doc_id": "finguard_feature_reason_glossary",
+     "section": "FinGuard feature and reason-code glossary > 3. Reason families",
+     "pages": null
+    }
+   ]
   },
   "What does the Mastercard Ethoca alert service do?": {
    "status": "not_covered",
-   "confidence": 0.5485,
+   "confidence": -7.2629,
    "ungrounded_names": [
     "Ethoca"
    ],

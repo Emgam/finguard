@@ -111,7 +111,8 @@ def entity_features_for(df: pd.DataFrame) -> pd.DataFrame:
 # --------------------------------------------------------------------------- helpers
 def _encode(s: pd.Series, levels: list) -> np.ndarray:
     """Category -> integer code (float32). Unseen or rare -> len(levels) ('other'); NaN stays NaN."""
-    codes = pd.Categorical(s, categories=levels).codes.astype("float32")
+    known = s.where(s.isin(levels))                     # unseen values -> NaN first (pandas 4 refuses them in a Categorical)
+    codes = pd.Categorical(known, categories=levels).codes.astype("float32")
     missing = s.isna().to_numpy()
     codes[(codes < 0) & ~missing] = len(levels)
     codes[missing] = np.nan

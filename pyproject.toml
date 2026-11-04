@@ -21,7 +21,7 @@ dependencies = [
 [project.optional-dependencies]
 kb = ["sentence-transformers>=2.7"]          # dense embeddings and cross-encoder re-ranking (optional)
 mlops = ["mlflow>=2.12"]
-dev = ["jupyter>=1.0", "nbconvert>=7", "pytest>=8", "ruff>=0.5"]
+dev = ["jupyter>=1.0", "nbconvert>=7", "pytest>=8", "ruff>=0.5", "reportlab>=4.0"]   # reportlab: PDF parser tests
 
 [tool.setuptools.packages.find]
 where = ["src"]

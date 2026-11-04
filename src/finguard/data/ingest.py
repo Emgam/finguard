@@ -169,7 +169,7 @@ def build_interim(raw_dir: Path | None = None, out_dir: Path | None = None,
     manifest["train_path"] = str(save_table(train, "train", out_dir))
     manifest["test_path"] = str(save_table(test, "test", out_dir))
     out = Path(out_dir or config.INTERIM_DIR)
-    (out / "manifest.json").write_text(json.dumps(manifest, indent=2))
+    (out / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     log("saved", manifest["train_path"], manifest["test_path"])
     return manifest
 

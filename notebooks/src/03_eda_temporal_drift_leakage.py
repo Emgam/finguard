@@ -178,7 +178,7 @@ ov_random = P.split_overlap(entity, y, rand_tr, rand_te)
 ov_time = P.split_overlap(entity, y, time_tr, time_te)
 fig = F.fig15_entity_label_purity(purity, ov_random, ov_time)
 cov.update({"overlap_random": ov_random, "overlap_time": ov_time})
-(config.TABLE_DIR / "proxy_entity_summary.json").write_text(json.dumps(cov, indent=2, default=float))
+(config.TABLE_DIR / "proxy_entity_summary.json").write_text(json.dumps(cov, indent=2, default=float), encoding="utf-8")
 pd.DataFrame({"random split": ov_random, "time split": ov_time}).round(4)
 
 # %% [markdown]
@@ -206,7 +206,7 @@ risks.to_csv(config.TABLE_DIR / "leakage_risks.csv", index=False)
 risks
 
 # %%
-(config.TABLE_DIR / "phase1_stats_03.json").write_text(json.dumps(STATS, indent=2, default=float))
+(config.TABLE_DIR / "phase1_stats_03.json").write_text(json.dumps(STATS, indent=2, default=float), encoding="utf-8")
 print(json.dumps({k: STATS[k] for k in ["weekly_rate_min", "weekly_rate_max", "hour_peak", "drift_over_0.6",
                                         "max_single_strength", "n_weak_lt_0.52", "redundant"]}, indent=1, default=float))
 

@@ -14,3 +14,4 @@ jupyter>=1.0
 nbconvert>=7
 pytest>=8
 ruff>=0.5
+reportlab>=4.0        # generates the PDFs the parser tests read

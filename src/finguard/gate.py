@@ -36,7 +36,7 @@ CHAMPION_TOLERANCE = 0.005
 
 
 def _json(path: Path) -> dict:
-    return json.loads(Path(path).read_text())
+    return json.loads(Path(path).read_text(encoding="utf-8"))
 
 
 def run(name: str = "lgbm_numeric") -> dict:
@@ -49,7 +49,7 @@ def run(name: str = "lgbm_numeric") -> dict:
     n_fail = int((val["status"] == "FAIL").sum())
     check("Data", "Phase 1 data-quality checks", n_fail == 0, f"{n_fail} FAIL, {int((val['status'] == 'WARN').sum())} WARN")
 
-    cols = json.loads((ART / name / "columns.json").read_text())["columns"]
+    cols = json.loads((ART / name / "columns.json").read_text(encoding="utf-8"))["columns"]
     bad = sorted(set(cols) & FORBIDDEN) + [c for c in cols if c.lower() in ID_LIKE or "customer" in c.lower()]
     check("Leakage", "no forbidden or ID/time-like input", not bad, f"{len(cols)} inputs; offending: {bad or 'none'}")
     from finguard.models import dataset
@@ -101,7 +101,7 @@ def run(name: str = "lgbm_numeric") -> dict:
     check("Explainability", "top-5 family overlap >= 0.6", ov >= 0.6, f"{ov:.2f}")
 
     report = {"model": name, "passed": all(c["passed"] for c in checks), "checks": checks}
-    (ART / "gate_report.json").write_text(json.dumps(report, indent=1))
+    (ART / "gate_report.json").write_text(json.dumps(report, indent=1), encoding="utf-8")
     return report
 
 

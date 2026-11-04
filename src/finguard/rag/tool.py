@@ -13,7 +13,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from finguard.rag.corpus import INDEX_DIR, load_index
-from finguard.rag.retrieve import Retriever
+from finguard.rag.retrieve import Retriever, make_reranker
 
 SCHEMA = {
     "name": "policy_search",
@@ -32,15 +32,30 @@ SCHEMA = {
 }
 
 
-@lru_cache(maxsize=1)
-def _retriever(index_dir: str = str(INDEX_DIR)) -> tuple[Retriever, str]:
-    """The retriever as evaluated: the variant chosen on the development half, its abstention
-    threshold and the grounding check, all read from ``abstention.json`` written by `evaluate`."""
+def deployed(index_dir: Path = INDEX_DIR) -> tuple[Retriever, str]:
+    """The retriever exactly as evaluated: the index, the variant chosen on the development half,
+    the re-ranker whose scores the abstention threshold was tuned on, the threshold and the
+    grounding check, all read from ``abstention.json`` written by `evaluate`.
+
+    A threshold is only meaningful for the re-ranker and index it was tuned on (a cross-encoder
+    scores in logits, the lexical re-ranker between 0 and 1), so a rebuilt index refuses to load
+    until it is evaluated again."""
     index = load_index(Path(index_dir))
     abst = Path(index_dir) / "abstention.json"
-    cfg = json.loads(abst.read_text()) if abst.exists() else {}
-    return (Retriever(index, threshold=cfg.get("threshold"), check_names=cfg.get("grounding_check", True)),
+    if not abst.exists():
+        raise RuntimeError("no abstention.json: run `python -m finguard.rag evaluate` after building the index")
+    cfg = json.loads(abst.read_text(encoding="utf-8"))
+    if cfg.get("index_version") and cfg["index_version"] != index.version:
+        raise RuntimeError(f"the index ({index.version}) was rebuilt after the evaluation ({cfg['index_version']}): "
+                           "run `python -m finguard.rag evaluate` again")
+    reranker = make_reranker(cfg.get("reranker"))                # None (older files): FINGUARD_RERANKER or lexical
+    return (Retriever(index, reranker=reranker, threshold=cfg.get("threshold"), check_names=cfg.get("grounding_check", True)),
             cfg.get("variant", "hybrid_rerank"))
+
+
+@lru_cache(maxsize=1)
+def _retriever(index_dir: str = str(INDEX_DIR)) -> tuple[Retriever, str]:
+    return deployed(Path(index_dir))
 
 
 def policy_search(query: str, tier: int | None = None, jurisdiction: str | None = None, k: int = 5) -> dict:

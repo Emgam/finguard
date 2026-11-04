@@ -133,22 +133,12 @@
    }
   }
  ],
- "aliases": {
-  "champion": "lgbm_numeric-v1"
- },
+ "aliases": {},
  "history": [
   {
    "event": "register",
    "model_id": "lgbm_numeric-v1",
    "at": "2026-10-29 14:08:02"
-  },
-  {
-   "event": "promote",
-   "alias": "champion",
-   "model_id": "lgbm_numeric-v1",
-   "previous": null,
-   "approved_by": "project lead",
-   "at": "2026-10-30 17:07:51"
   }
  ]
 }

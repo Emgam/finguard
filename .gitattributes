@@ -1,0 +1,3 @@
+# Files whose SHA-256 is checked must keep their exact bytes (no CRLF conversion on Windows)
+corpus/questions.jsonl -text
+corpus/docs/*.md -text

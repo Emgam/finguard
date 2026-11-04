@@ -104,7 +104,7 @@ freq_t
 cards = pd.DataFrame({"TransactionID": fs.transaction_id[alert_idx], "band": band_of_alert, "calibrated_p": p_alert,
                       "label": fs.y[alert_idx], **{f"reason_{k + 1}": [R.FAMILY_LABEL[t[k]] if len(t) > k else "" for t in top5] for k in range(5)}})
 cards.to_csv(T / "phase2_reason_cards.csv", index=False)
-(T / "phase2_reason_examples.txt").write_text("\n\n".join(card(i) for i in examples))
+(T / "phase2_reason_examples.txt").write_text("\n\n".join(card(i) for i in examples), encoding="utf-8")
 cards.head()
 
 # %% [markdown]
@@ -138,7 +138,7 @@ seed_t = pd.DataFrame(seed_rows).set_index("model")[["pr_auc", "roc_auc", "recal
 spread = seed_t.agg(["mean", "std", "min", "max"])
 seed_t.to_csv(T / "phase2_seed_variance.csv")
 (T / "phase2_explanations.json").write_text(json.dumps({"local_accuracy_max_abs_error": S["local_accuracy_max_abs_error"],
-    "reason_summary": summary, "stability": stab, "seed_spread": spread.to_dict()}, indent=1, default=float))
+    "reason_summary": summary, "stability": stab, "seed_spread": spread.to_dict()}, indent=1, default=float), encoding="utf-8")
 pd.concat([seed_t, spread])
 
 # %% [markdown]

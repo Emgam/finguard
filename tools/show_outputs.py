@@ -2,7 +2,7 @@
 import json
 import sys
 
-nb = json.load(open(sys.argv[1]))
+nb = json.load(open(sys.argv[1], encoding="utf-8"))
 limit = int(sys.argv[2]) if len(sys.argv) > 2 else 2500
 n = 0
 for c in nb["cells"]:

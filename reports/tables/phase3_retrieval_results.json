@@ -120,8 +120,11 @@
  "abstention": {
   "variant": "bm25",
   "tuned_on": "dev",
+  "reranker": "lexical-v1",
+  "embedder": "lsa-tfidf-svd256",
+  "index_version": "4e38771857537a9d",
   "rule": "abstain if a name in the question is in no returned passage, or if confidence < threshold (threshold tuned on dev alone)",
-  "threshold": 0.7593402169507937,
+  "threshold": 0.7593402169507979,
   "grounding_check": true,
   "dev": {
    "unanswerable": 5,
@@ -146,7 +149,7 @@
   },
   "ablations": {
    "threshold_only": {
-    "threshold": 0.7593402169507937,
+    "threshold": 0.7593402169507979,
     "grounding_check": false,
     "dev": {
      "unanswerable": 5,

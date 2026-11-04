@@ -190,7 +190,7 @@ pd.crosstab(dt.ProductCD, dt.DeviceType.fillna("absent"), values=dt[config.TARGE
 fig = F.fig12_card_network_type(train)
 
 # %%
-(config.TABLE_DIR / "phase1_stats_02.json").write_text(json.dumps(STATS, indent=2, default=float))
+(config.TABLE_DIR / "phase1_stats_02.json").write_text(json.dumps(STATS, indent=2, default=float), encoding="utf-8")
 print(json.dumps({k: STATS[k] for k in ["cell_missing_rate", "n_blocks", "cols_in_blocks", "fraud_with_identity",
                                         "fraud_without_identity", "three_decimal_share_product_C", "product_C_identity"]}, indent=1, default=float))
 

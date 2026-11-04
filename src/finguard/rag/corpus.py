@@ -124,7 +124,7 @@ def build(registry: Path = REGISTRY, raw_dir: Path = RAW_DIR, project_dir: Path 
     index.save(index_dir)
     report |= {"index_version": index.version, "embedder": index.embedder.name, "n_chunks": len(chunks),
                "seconds": round(time.time() - t0, 1)}
-    (Path(index_dir) / "build_report.json").write_text(json.dumps(report, indent=1))
+    (Path(index_dir) / "build_report.json").write_text(json.dumps(report, indent=1), encoding="utf-8")
     return index, report
 
 

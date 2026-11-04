@@ -163,8 +163,8 @@ wk[["part", "first_day", "pr_auc", "share_of_frauds_from_entities_with_fraud_lab
 # from noise).
 
 # %%
-R6 = json.loads((T / "phase2_results.json").read_text())
-E7 = json.loads((T / "phase2_explanations.json").read_text())
+R6 = json.loads((T / "phase2_results.json").read_text(encoding="utf-8"))
+E7 = json.loads((T / "phase2_explanations.json").read_text(encoding="utf-8"))
 tm, cal, ci = R6["test_metrics"], R6["calibration"], R6["bootstrap_ci95"]
 band = {b["band"]: b for b in R6["bands"]["test"]}
 lgb_ci, lr_ci = ci["LightGBM"], ci["Logistic regression"]

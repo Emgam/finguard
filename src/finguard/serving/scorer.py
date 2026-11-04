@@ -64,7 +64,7 @@ class Scorer:
         reg = Path(config.ROOT / "artifacts" / "registry.json")
         if not reg.exists():
             return None
-        r = json.loads(reg.read_text())
+        r = json.loads(reg.read_text(encoding="utf-8"))
         for m in r.get("models", []):
             if m.get("model_sha256", "")[:12] == self.model_sha:
                 aliases = [a for a, mid in r.get("aliases", {}).items() if mid == m["model_id"]]

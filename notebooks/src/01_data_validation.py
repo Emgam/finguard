@@ -190,7 +190,7 @@ manifest = {
     "time_origin_seconds": origin, "train_shape": list(train.shape), "test_shape": list(test.shape),
     "train_path": str(p_train), "test_path": str(p_test),
 }
-(config.INTERIM_DIR / "manifest.json").write_text(json.dumps(manifest, indent=2))
+(config.INTERIM_DIR / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 print("saved", p_train.name, p_test.name, "and manifest.json")
 
 # %% [markdown]

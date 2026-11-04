@@ -94,7 +94,7 @@ class CrossEncoderReranker:
 
 def make_reranker(name: str | None = None):
     name = name or os.environ.get("FINGUARD_RERANKER", "lexical")
-    return LexicalReranker() if name == "lexical" else CrossEncoderReranker(name)
+    return LexicalReranker() if name in ("lexical", LexicalReranker.name) else CrossEncoderReranker(name)
 
 
 @dataclass

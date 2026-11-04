@@ -6,7 +6,7 @@
     python -m finguard.rag build [--embedder lsa|MODEL]   # parse, chunk, index -> data/corpus/index/
     python -m finguard.rag freeze [--note TEXT]           # freeze the question set before evaluating
     python -m finguard.rag evaluate [--note TEXT]         # four variants, abstention, reports (+ run log)
-    python -m finguard.rag search "QUERY" [--tier 1] [--jurisdiction EU] [--variant V]
+    python -m finguard.rag search "QUERY" [--tier 1] [--jurisdiction EU] [--variant V] [--full]
 """
 from __future__ import annotations
 
@@ -67,7 +67,7 @@ def cmd_evaluate(a) -> None:
     payload = ev.write_report(res, index, frozen)
     if a.note:
         ev.log_run(payload, a.note)
-    (corpus.INDEX_DIR / "abstention.json").write_text(json.dumps(res["abstention"] | {"chosen_variant": res["chosen_variant"]}, indent=1))
+    (corpus.INDEX_DIR / "abstention.json").write_text(json.dumps(res["abstention"] | {"chosen_variant": res["chosen_variant"]}, indent=1), encoding="utf-8")
     print(res["summary"].round(3).to_string(index=False))
     print(res["by_split"].round(3).to_string(index=False))
     print("chosen variant (development half):", res["chosen_variant"])
@@ -77,14 +77,12 @@ def cmd_evaluate(a) -> None:
 
 
 def cmd_search(a) -> None:
-    index = corpus.load_index()
-    abst = corpus.INDEX_DIR / "abstention.json"
-    cfg = json.loads(abst.read_text()) if abst.exists() else {}
-    variant = a.variant or cfg.get("variant", "hybrid_rerank")
-    out = Retriever(index, threshold=cfg.get("threshold"), check_names=cfg.get("grounding_check", True)).search(
-        a.query, k=a.k, variant=variant, tier=a.tier, jurisdiction=a.jurisdiction)
-    for p in out.get("passages", []):
-        p["text"] = p["text"][:400] + ("..." if len(p["text"]) > 400 else "")
+    from finguard.rag.tool import deployed
+    retriever, variant = deployed()
+    out = retriever.search(a.query, k=a.k, variant=a.variant or variant, tier=a.tier, jurisdiction=a.jurisdiction)
+    if not a.full:
+        for p in out.get("passages", []):
+            p["text"] = p["text"][:400] + ("..." if len(p["text"]) > 400 else "")
     print(json.dumps(out, indent=1, ensure_ascii=False))
 
 
@@ -100,7 +98,8 @@ def main() -> None:
     e.add_argument("--note", default="", help="record this run in reports/tables/phase3_retrieval_runs.json")
     e.set_defaults(fn=cmd_evaluate)
     s = sub.add_parser("search"); s.add_argument("query"); s.add_argument("--tier", type=int); s.add_argument("--jurisdiction")
-    s.add_argument("--variant", default=None, choices=VARIANTS); s.add_argument("--k", type=int, default=5); s.set_defaults(fn=cmd_search)
+    s.add_argument("--variant", default=None, choices=VARIANTS); s.add_argument("--k", type=int, default=5)
+    s.add_argument("--full", action="store_true", help="print each passage in full (default: first 400 characters)"); s.set_defaults(fn=cmd_search)
     a = ap.parse_args()
     a.fn(a)
 

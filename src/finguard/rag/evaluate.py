@@ -49,14 +49,14 @@ def file_hash(path: Path) -> str:
 def freeze(path: Path = QUESTIONS, frozen: Path = FROZEN, note: str = "") -> dict:
     rec = {"sha256": file_hash(path), "frozen_at": time.strftime("%Y-%m-%d %H:%M:%S"), "n_questions": len(load_questions(path)),
            "note": note}
-    Path(frozen).write_text(json.dumps(rec, indent=1))
+    Path(frozen).write_text(json.dumps(rec, indent=1), encoding="utf-8")
     return rec
 
 
 def check_frozen(path: Path = QUESTIONS, frozen: Path = FROZEN) -> dict:
     if not Path(frozen).exists():
         raise RuntimeError("the question set is not frozen: run `python -m finguard.rag freeze` before evaluating")
-    rec = json.loads(Path(frozen).read_text())
+    rec = json.loads(Path(frozen).read_text(encoding="utf-8"))
     if rec["sha256"] != file_hash(path):
         raise RuntimeError("questions.jsonl changed after it was frozen; re-freeze deliberately with --refreeze")
     return rec
@@ -154,7 +154,10 @@ def evaluate(index: KnowledgeIndex, questions: list[dict], variants=VARIANTS, k:
     t_only = _tune_threshold(dev.confidence.to_numpy(), dev.answerable.to_numpy()) if len(dev) else 0.0
     t_joint = _tune_threshold(dev.confidence.to_numpy(), dev.answerable.to_numpy(), dev.flagged.to_numpy()) if len(dev) else 0.0
     chosen = rule(t_only, True)
-    abstention = {"variant": abstain_variant, "tuned_on": "dev",
+    # the threshold is a score of THIS re-ranker on THIS index: both are recorded, and the tool
+    # refuses to apply the threshold with another re-ranker or a rebuilt index
+    abstention = {"variant": abstain_variant, "tuned_on": "dev", "reranker": getattr(retr.reranker, "name", "lexical"),
+                  "embedder": index.embedder.name, "index_version": index.version,
                   "rule": "abstain if a name in the question is in no returned passage, or if confidence < threshold "
                           "(threshold tuned on dev alone)", **chosen,
                   "ablations": {"threshold_only": rule(t_only, False), "grounding_only": rule(0.0, True),
@@ -173,7 +176,7 @@ def write_report(res: dict, index: KnowledgeIndex, frozen: dict, out_dir: Path =
                "chosen_variant": res["chosen_variant"],
                "selection_rule": f"simplest variant with development-half Hit@5 >= {TARGET_HIT5:.2f}",
                "abstention": res["abstention"], "unmapped_gold": res["unmapped_gold"]}
-    (out_dir / "phase3_retrieval_results.json").write_text(json.dumps(payload, indent=1, default=float))
+    (out_dir / "phase3_retrieval_results.json").write_text(json.dumps(payload, indent=1, default=float), encoding="utf-8")
     return payload
 
 
@@ -183,7 +186,7 @@ RUNS = config.TABLE_DIR / "phase3_retrieval_runs.json"
 def log_run(payload: dict, note: str, path: Path = RUNS) -> list[dict]:
     """Append one evaluation run (what changed, overall and per-split results) to the run log, so the
     report can show every evaluation of the frozen question set, not only the last one."""
-    runs = json.loads(Path(path).read_text()) if Path(path).exists() else []
+    runs = json.loads(Path(path).read_text(encoding="utf-8")) if Path(path).exists() else []
     runs.append({"run": len(runs) + 1, "at": time.strftime("%Y-%m-%d %H:%M:%S"), "note": note,
                  "index_version": payload["index_version"], "embedder": payload["embedder"],
                  "chosen_variant": payload.get("chosen_variant"), "abstention_variant": payload["abstention"]["variant"],
@@ -191,5 +194,5 @@ def log_run(payload: dict, note: str, path: Path = RUNS) -> list[dict]:
                  "abstention": {k: payload["abstention"][k] for k in ("threshold", "grounding_check", "dev", "test", "all")},
                  "ablations": {k: {kk: v[kk] for kk in ("threshold", "dev", "test", "all")}
                                for k, v in payload["abstention"].get("ablations", {}).items()}})
-    Path(path).write_text(json.dumps(runs, indent=1, default=float))
+    Path(path).write_text(json.dumps(runs, indent=1, default=float), encoding="utf-8")
     return runs

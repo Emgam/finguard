@@ -51,16 +51,16 @@ def code_fingerprint() -> str:
 
 
 def load() -> dict:
-    return json.loads(REGISTRY.read_text()) if REGISTRY.exists() else {"models": [], "aliases": {}, "history": []}
+    return json.loads(REGISTRY.read_text(encoding="utf-8")) if REGISTRY.exists() else {"models": [], "aliases": {}, "history": []}
 
 
 def save(reg: dict) -> None:
     REGISTRY.parent.mkdir(parents=True, exist_ok=True)
-    REGISTRY.write_text(json.dumps(reg, indent=1, default=float))
+    REGISTRY.write_text(json.dumps(reg, indent=1, default=float), encoding="utf-8")
 
 
 def register(name: str = "lgbm_numeric", gate_report: dict | None = None) -> dict:
-    info = json.loads((ART / name / "info.json").read_text())
+    info = json.loads((ART / name / "info.json").read_text(encoding="utf-8"))
     model_file = ART / name / "model.txt"
     reg = load()
     sha = _sha(model_file)

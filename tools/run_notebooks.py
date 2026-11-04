@@ -61,8 +61,15 @@ def _figures() -> list[dict]:
     return outs
 
 
+def _save(path: Path, nb: dict) -> None:
+    """Write UTF-8 to a temporary file, then replace: a failed write never leaves an empty notebook."""
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(json.dumps(nb, indent=1, ensure_ascii=False), encoding="utf-8")
+    os.replace(tmp, path)
+
+
 def run(path: Path) -> float:
-    nb = json.loads(path.read_text())
+    nb = json.loads(path.read_text(encoding="utf-8"))
     os.chdir(path.parent)
     sys.path.insert(0, str(ROOT / "src"))
     ns: dict = {"__name__": "__main__"}
@@ -101,7 +108,7 @@ def run(path: Path) -> float:
             outputs.append({"output_type": "error", "ename": type(exc).__name__, "evalue": str(exc),
                             "traceback": traceback.format_exc().split("\n")})
             cell["outputs"], cell["execution_count"] = outputs, count
-            path.write_text(json.dumps(nb, indent=1, ensure_ascii=False))
+            _save(path, nb)
             raise RuntimeError(f"{path.name}: cell {count} failed: {exc}") from exc
         flush()
         outputs.extend(_figures())
@@ -109,7 +116,7 @@ def run(path: Path) -> float:
             outputs.append({"output_type": "execute_result", "execution_count": count, "metadata": {}, "data": _bundle(result)})
         cell["outputs"], cell["execution_count"] = outputs, count
         print(f"  cell {count:>2} done  ({time.time() - t0:5.1f}s)", flush=True)
-    path.write_text(json.dumps(nb, indent=1, ensure_ascii=False))
+    _save(path, nb)
     return time.time() - t0
 
 

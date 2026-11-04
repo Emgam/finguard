@@ -45,7 +45,7 @@ def _write(d: Path, info: dict, arrays: dict | None = None) -> None:
     d.mkdir(parents=True, exist_ok=True)
     if arrays is not None:
         np.savez_compressed(d / "preds.npz", **arrays)
-    (d / "info.json").write_text(json.dumps(info, indent=1, default=float))
+    (d / "info.json").write_text(json.dumps(info, indent=1, default=float), encoding="utf-8")
 
 
 def _done(d: Path, force: bool) -> bool:

@@ -174,7 +174,7 @@ class KnowledgeIndex:
             pickle.dump({"bm25": self.bm25, "lsa": lsa, "embedder": self.embedder.name}, f, protocol=pickle.HIGHEST_PROTOCOL)
         (d / "manifest.json").write_text(json.dumps({
             "index_version": self.version, "embedder": self.embedder.name, "n_chunks": len(self.chunks),
-            "documents": {k: {"sha256": v.get("sha256"), "title": v.get("title")} for k, v in self.docs.items()}}, indent=1))
+            "documents": {k: {"sha256": v.get("sha256"), "title": v.get("title")} for k, v in self.docs.items()}}, indent=1), encoding="utf-8")
         return d
 
     @staticmethod
@@ -184,5 +184,5 @@ class KnowledgeIndex:
         with open(d / "index.pkl", "rb") as f:
             obj = pickle.load(f)
         emb = obj["lsa"] if obj["lsa"] is not None else SentenceTransformerEmbedder(obj["embedder"])
-        manifest = json.loads((d / "manifest.json").read_text())
+        manifest = json.loads((d / "manifest.json").read_text(encoding="utf-8"))
         return KnowledgeIndex(chunks, docs, obj["bm25"], emb, np.load(d / "vectors.npy"), manifest["index_version"])

@@ -40,7 +40,7 @@ def parse(path: Path) -> dict:
         elif body:
             cells.append({"cell_type": "code", "metadata": {}, "execution_count": None, "outputs": [], "source": _lines(body)})
 
-    for line in path.read_text().split("\n"):
+    for line in path.read_text(encoding="utf-8").split("\n"):
         if line.startswith("# %%"):
             flush()
             kind, buf = ("markdown" if "[markdown]" in line else "code"), []
@@ -59,7 +59,7 @@ def main() -> None:
         for i, c in enumerate(nb["cells"]):
             c["id"] = f"{src.stem[:2]}-{i:03d}"
         out = OUT / f"{src.stem}.ipynb"
-        out.write_text(json.dumps(nb, indent=1, ensure_ascii=False))
+        out.write_text(json.dumps(nb, indent=1, ensure_ascii=False), encoding="utf-8")
         print("built", out.relative_to(ROOT), f"({len(nb['cells'])} cells)")
 
 

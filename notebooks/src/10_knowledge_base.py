@@ -24,7 +24,7 @@ from finguard.rag.text import approx_tokens
 pd.set_option("display.max_columns", 30, "display.width", 200, "display.max_colwidth", 110)
 T = config.TABLE_DIR
 reg = pd.DataFrame(corpus.load_registry())
-build = json.loads((corpus.INDEX_DIR / "build_report.json").read_text())
+build = json.loads((corpus.INDEX_DIR / "build_report.json").read_text(encoding="utf-8"))
 index = corpus.load_index()
 print(f"index {index.version} | embedder {index.embedder.name} | {len(index.chunks):,} chunks")
 
@@ -69,7 +69,7 @@ pd.crosstab(qs.gold_doc, [qs.answerable, qs.split], margins=True)
 # that fitted the five development unanswerables and failed on the held-out ones.
 
 # %%
-runs = json.loads((T / "phase3_retrieval_runs.json").read_text())
+runs = json.loads((T / "phase3_retrieval_runs.json").read_text(encoding="utf-8"))
 log = []
 for r in runs:
     v = r.get("chosen_variant") or "hybrid_rerank"                 # runs 1-4 used hybrid + re-ranking throughout
@@ -91,7 +91,7 @@ pd.DataFrame(log).set_index("run")
 # `rag/retrieve.py` before the first run), and `policy_search` uses it.
 
 # %%
-res = json.loads((T / "phase3_retrieval_results.json").read_text())
+res = json.loads((T / "phase3_retrieval_results.json").read_text(encoding="utf-8"))
 summary = pd.DataFrame(res["summary"])
 by_split = pd.DataFrame(res["by_split"])
 chosen = res["chosen_variant"]
@@ -201,5 +201,5 @@ phase3 = {"index_version": res["index_version"], "embedder": res["embedder"], "n
           "by_split": res["by_split"], "abstention": {k: ab[k] for k in ("rule", "threshold", "dev", "test", "all")},
           "ablations": ab["ablations"], "misses": miss[["id", "split", "gold_doc", "top_doc", "first_gold_rank"]].to_dict("records"),
           "runs": log, "operating_points": ops, "tool_examples": examples}
-(T / "phase3_summary.json").write_text(json.dumps(phase3, indent=1, default=float))
+(T / "phase3_summary.json").write_text(json.dumps(phase3, indent=1, default=float), encoding="utf-8")
 print("saved reports/tables/phase3_summary.json")
