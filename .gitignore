@@ -12,3 +12,4 @@ artifacts/**/model.txt
 artifacts/**/*.npz
 artifacts/**/*.pkl
 data/corpus/
+data/cases/

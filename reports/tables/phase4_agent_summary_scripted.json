@@ -1,0 +1,72 @@
+{
+ "run_at": "2026-11-05 08:24:47",
+ "label": "pipeline check, neural retriever",
+ "llm": "scripted",
+ "llm_model": "scripted-test-model",
+ "graph": "langgraph",
+ "prompts": [
+  "orchestrator@1.0.0",
+  "investigation@1.0.0",
+  "report@1.0.0"
+ ],
+ "versions": {
+  "model_version": "lgbm_numeric-v1",
+  "index_version": "e625b14c7e7c862f",
+  "embedder": "intfloat/multilingual-e5-small",
+  "reranker": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1",
+  "retrieval_variant": "bm25",
+  "indicator_map": "1.0.0"
+ },
+ "summary": {
+  "fallback": {
+   "cases": 20,
+   "request_type_accuracy": 1.0,
+   "outcome_accuracy": 0.95,
+   "outcome_follows_evidence": 1.0,
+   "retrieval_disagrees_with_label": [
+    "c16"
+   ],
+   "refusals_correct": 1.0,
+   "plan_accuracy": null,
+   "written_reports": 16,
+   "policy_compliance": 1.0,
+   "numbers_traceable_final": 1.0,
+   "claims_cited_final": 1.0,
+   "claims_cited_first_draft": null,
+   "numbers_traceable_first_draft": null,
+   "fallback_rate": 0.85,
+   "mean_tool_calls": 3.85,
+   "mean_llm_calls": 0.0,
+   "median_seconds": 0.16,
+   "max_seconds": 0.32
+  },
+  "orchestrated": {
+   "cases": 20,
+   "request_type_accuracy": 1.0,
+   "outcome_accuracy": 0.95,
+   "outcome_follows_evidence": 1.0,
+   "retrieval_disagrees_with_label": [
+    "c16"
+   ],
+   "refusals_correct": 1.0,
+   "plan_accuracy": 1.0,
+   "written_reports": 16,
+   "policy_compliance": 1.0,
+   "numbers_traceable_final": 1.0,
+   "claims_cited_final": 1.0,
+   "claims_cited_first_draft": 1.0,
+   "numbers_traceable_first_draft": 1.0,
+   "fallback_rate": 0.0,
+   "mean_tool_calls": 3.85,
+   "mean_llm_calls": 2.25,
+   "median_seconds": 1.37,
+   "max_seconds": 3.99
+  }
+ },
+ "exit_criteria": {
+  "policy_compliance_100": true,
+  "numbers_traceable_100": true,
+  "claims_cited_first_draft_ge_90": true
+ },
+ "note": "The scripted test model is deterministic and follows the fixed plans: these figures check the pipeline, not an LLM."
+}

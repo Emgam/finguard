@@ -1,0 +1,129 @@
+{
+ "version": "1.0.0",
+ "about": "Fixed table behind the indicator_map tool (Project Report v3.0, section 8.1). It maps a reason family or a novelty flag on an alert to the typologies the FinGuard playbook lists for it, the checks the playbook suggests, and knowledge-base queries. It is a lookup, not a model: it never reads the transaction and never decides anything. Typologies are what the indicators are 'consistent with', never a finding. Changing this file changes agent behaviour: bump 'version' and re-run the agent evaluation.",
+ "triggers": {
+  "flag_burst_first_day": {
+   "label": "Burst of transactions within 24 h of the proxy entity's first transaction",
+   "typologies": ["card testing", "account takeover"],
+   "checks": ["Compare the amounts, products and devices of the burst, and check whether earlier transactions in the burst were declined or disputed."],
+   "queries": [{"query": "several transactions on the proxy entity within minutes or hours card testing", "tier": null}]
+  },
+  "entity_velocity": {
+   "label": "Proxy-entity velocity",
+   "typologies": ["card testing", "account takeover"],
+   "checks": ["Compare the amounts, products and devices of the recent transactions on the proxy entity."],
+   "queries": [{"query": "several transactions on the proxy entity within minutes or hours card testing", "tier": null}]
+  },
+  "entity_history": {
+   "label": "Proxy-entity history",
+   "typologies": ["account takeover"],
+   "checks": ["Review the proxy entity's earlier transactions: time since the previous one, amounts and products."],
+   "queries": [{"query": "risk indicators for cyber-enabled fraud suspicion in account user's identity", "tier": null}]
+  },
+  "flag_new_device": {
+   "label": "New device brand for the proxy entity",
+   "typologies": ["account takeover"],
+   "checks": ["Check whether the device change coincides with a new email domain or a change of shipping details."],
+   "queries": [{"query": "new device used for the account account takeover indicators", "tier": null}]
+  },
+  "device": {
+   "label": "Device and browser",
+   "typologies": ["account takeover"],
+   "checks": ["Compare the device brand and browser with those the proxy entity used before."],
+   "queries": [{"query": "new device used for the account account takeover indicators", "tier": null}]
+  },
+  "flag_amount_above_max": {
+   "label": "Amount far above the proxy entity's earlier maximum",
+   "typologies": ["account takeover", "stolen card used for high-value goods"],
+   "checks": ["Compare the amount and product with the proxy entity's earlier amounts and products; check whether the purchase type changed."],
+   "queries": [{"query": "amount far above the earlier amounts of the same card account takeover", "tier": null}]
+  },
+  "amount": {
+   "label": "Amount",
+   "typologies": ["stolen card used for high-value goods"],
+   "checks": ["Compare the amount with the proxy entity's earlier amounts and with the usual amounts for the product code."],
+   "queries": [{"query": "amount far above the earlier amounts of the same card account takeover", "tier": null}]
+  },
+  "email": {
+   "label": "Email domains",
+   "typologies": ["stolen card details used by a third party"],
+   "checks": ["Check the purchaser and recipient email domains against the domains the proxy entity used before."],
+   "queries": [{"query": "purchaser and recipient email domains differ anonymous email domain", "tier": null}]
+  },
+  "card": {
+   "label": "Card attributes",
+   "typologies": ["card-absent fraud (card-network dispute rules)"],
+   "checks": ["Note the card network and type; card-not-present fraud disputes follow the network's rules."],
+   "queries": [{"query": "Visa dispute condition 10.4 other fraud card-absent environment", "tier": 1}]
+  },
+  "address": {
+   "label": "Address and distance codes",
+   "typologies": [],
+   "checks": ["Compare the address codes with the proxy entity's earlier transactions; the codes are undisclosed, so only equality can be checked."],
+   "queries": [{"query": "address verification service for card-absent transactions", "tier": 1}]
+  },
+  "completeness": {
+   "label": "Data completeness",
+   "typologies": [],
+   "checks": ["Check whether missing identity data is normal for the product code; it is not an indicator on its own."],
+   "queries": [{"query": "identity record absent and many empty fields", "tier": null}]
+  },
+  "product": {
+   "label": "Product code",
+   "typologies": [],
+   "checks": ["Note the product code; the codes are not explained by the data provider."],
+   "queries": []
+  },
+  "time": {
+   "label": "Relative time of day",
+   "typologies": [],
+   "checks": ["Relative hour only: the data's clock and time zone are unknown, so do not read it as local time."],
+   "queries": []
+  },
+  "identity_masked": {
+   "label": "Anonymized identity signals",
+   "typologies": [],
+   "checks": ["Anonymized signal group: its meaning is not disclosed and it cannot be verified against the transaction."],
+   "queries": []
+  },
+  "counting_C": {
+   "label": "Anonymized counting features",
+   "typologies": [],
+   "checks": ["Anonymized signal group: its meaning is not disclosed and it cannot be verified against the transaction."],
+   "queries": []
+  },
+  "timedelta_D": {
+   "label": "Anonymized time-delta features",
+   "typologies": [],
+   "checks": ["Anonymized signal group: its meaning is not disclosed and it cannot be verified against the transaction."],
+   "queries": []
+  },
+  "match_M": {
+   "label": "Match flags",
+   "typologies": [],
+   "checks": ["Anonymized signal group: its meaning is not disclosed and it cannot be verified against the transaction."],
+   "queries": []
+  },
+  "vesta_V": {
+   "label": "Vesta engineered features",
+   "typologies": [],
+   "checks": ["Anonymized signal group: its meaning is not disclosed and it cannot be verified against the transaction."],
+   "queries": []
+  },
+  "no_entity_key": {
+   "label": "No proxy entity (card1, addr1 or D1 missing)",
+   "typologies": [],
+   "checks": ["Check which of card1, addr1 or D1 is missing; a missing key is not an indicator on its own."],
+   "queries": []
+  }
+ },
+ "by_request_type": {
+  "investigate": [
+   {"query": "which fraudulent payment transactions must a payment service provider report", "tier": 1, "why": "obligations if fraud is confirmed"},
+   {"query": "escalate to a level-2 investigator or the compliance officer", "tier": null, "why": "escalation"}
+  ],
+  "what_to_check": [
+   {"query": "escalate to a level-2 investigator or the compliance officer", "tier": null, "why": "escalation"}
+  ]
+ }
+}

@@ -180,7 +180,7 @@ class KnowledgeIndex:
     @staticmethod
     def load(directory: str | Path, docs: dict) -> "KnowledgeIndex":
         d = Path(directory)
-        chunks = [json.loads(line) for line in open(d / "chunks.jsonl", encoding="utf-8")]
+        chunks = [json.loads(line) for line in Path(d / "chunks.jsonl").read_text(encoding="utf-8").splitlines()]
         with open(d / "index.pkl", "rb") as f:
             obj = pickle.load(f)
         emb = obj["lsa"] if obj["lsa"] is not None else SentenceTransformerEmbedder(obj["embedder"])

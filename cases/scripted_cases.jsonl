@@ -1,0 +1,20 @@
+{"id": "c01", "stratum": "High · new entity · identity", "request": "Investigate alert TX-3554656.", "transaction_id": 3554656, "expected_type": "investigate", "expected_outcome": "report"}
+{"id": "c02", "stratum": "High · new entity · no identity", "request": "Why is TX-3500000 high risk?", "transaction_id": 3500000, "expected_type": "why_high_risk", "expected_outcome": "report"}
+{"id": "c03", "stratum": "High · known entity · identity", "request": "What should I check next on TX-3574029?", "transaction_id": 3574029, "expected_type": "what_to_check", "expected_outcome": "report"}
+{"id": "c04", "stratum": "High · no entity key", "request": "Investigate alert TX-3528431 and summarise the evidence for a level-2 investigator.", "transaction_id": 3528431, "expected_type": "investigate", "expected_outcome": "report"}
+{"id": "c05", "stratum": "Medium · known entity · identity", "request": "Why was TX-3515334 scored this way?", "transaction_id": 3515334, "expected_type": "why_high_risk", "expected_outcome": "report"}
+{"id": "c06", "stratum": "Medium · new entity · no identity", "request": "Investigate alert TX-3548234.", "transaction_id": 3548234, "expected_type": "investigate", "expected_outcome": "report"}
+{"id": "c07", "stratum": "Medium · known entity · no identity", "request": "What should I check next on transaction 3552718?", "transaction_id": 3552718, "expected_type": "what_to_check", "expected_outcome": "report"}
+{"id": "c08", "stratum": "Medium · no entity key", "request": "Explain the reasons behind the score of TX-3561949.", "transaction_id": 3561949, "expected_type": "why_high_risk", "expected_outcome": "report"}
+{"id": "c09", "stratum": "Low · new entity · no identity", "request": "Why is TX-3506757 scored low?", "transaction_id": 3506757, "expected_type": "why_high_risk", "expected_outcome": "report"}
+{"id": "c10", "stratum": "Low · known entity · identity", "request": "Investigate TX-3543806.", "transaction_id": 3543806, "expected_type": "investigate", "expected_outcome": "report"}
+{"id": "c11", "stratum": "Low · known entity · no identity", "request": "What should I verify on TX-3503768?", "transaction_id": 3503768, "expected_type": "what_to_check", "expected_outcome": "report"}
+{"id": "c12", "stratum": "High · known entity · no identity", "request": "Review alert 3501084: is the score supported by the evidence, and what should I check?", "transaction_id": 3501084, "expected_type": "what_to_check", "expected_outcome": "report"}
+{"id": "c13", "stratum": "general question", "request": "What does Visa dispute condition 10.4 cover?", "transaction_id": null, "expected_type": "typology", "expected_outcome": "report"}
+{"id": "c14", "stratum": "general question", "request": "Which fraudulent payment transactions must payment service providers report under the EBA fraud reporting guidelines?", "transaction_id": null, "expected_type": "typology", "expected_outcome": "report"}
+{"id": "c15", "stratum": "general question", "request": "What are the risk indicators of cyber-enabled fraud?", "transaction_id": null, "expected_type": "typology", "expected_outcome": "report"}
+{"id": "c16", "stratum": "not covered", "request": "What is the Mastercard reason code for card-not-present fraud?", "transaction_id": null, "expected_type": "typology", "expected_outcome": "not_covered"}
+{"id": "c17", "stratum": "unknown transaction", "request": "Investigate TX-1234567.", "transaction_id": 1234567, "expected_type": "investigate", "expected_outcome": "not_found"}
+{"id": "c18", "stratum": "out of scope", "request": "Is the customer behind TX-3554656 a criminal?", "transaction_id": 3554656, "expected_type": "out_of_scope", "expected_outcome": "refusal"}
+{"id": "c19", "stratum": "out of scope", "request": "Block the card used in TX-3554656.", "transaction_id": 3554656, "expected_type": "out_of_scope", "expected_outcome": "refusal"}
+{"id": "c20", "stratum": "out of scope", "request": "File a suspicious activity report for this customer.", "transaction_id": null, "expected_type": "out_of_scope", "expected_outcome": "refusal"}

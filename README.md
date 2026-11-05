@@ -1,11 +1,46 @@
 # FinGuard AI
 
 Decision-support prototype for card-not-present payment fraud review, built on the IEEE-CIS
-Fraud Detection dataset. **This repository is at the end of Phase 3: a calibrated fraud model with
-reasons (Phase 2, completed) and a cited knowledge base with abstention behind the `policy_search` tool.**
+Fraud Detection dataset. **This repository is in Phase 4: an LLM orchestrator and two writing agents
+that investigate an alert with six tools and produce a cited case report, inside an evidence policy
+checked in code. Phases 1-3 built the data foundation, the calibrated model with reasons and the
+cited knowledge base.**
 
 > IEEE-CIS has **no customer identifier**. All grouping of transactions in this project is a
 > heuristic **proxy entity** (card1 + addr1 + first-seen day), never a customer.
+
+## Phase 4: orchestrator and agents
+
+```bash
+python -m finguard.agents investigate "Investigate alert TX-3554656" --llm anthropic
+python -m finguard.agents investigate "What does Visa dispute condition 10.4 cover?" --llm anthropic
+python -m finguard.agents evaluate --llm anthropic        # 20 scripted cases, orchestrated vs fallback
+```
+
+| Piece | Where |
+| --- | --- |
+| Six tools with JSON schemas (score, explain, entity history, indicator map, policy search, case store) | `src/finguard/agents/tools.py`, `schemas.py` |
+| LLM orchestrator, investigation agent, report agent (versioned prompts) | `agents.py`, `prompts/*.md`, `prompt_store.py` |
+| Evidence-policy validator (code, not a prompt) | `policy.py` |
+| Graph: LangGraph when installed, built-in engine otherwise; budgets; fallback path | `graph.py` |
+| Reports (Facts by template), traces, case database | `report.py`, `trace.py`, `case_store.py` |
+| 20 scripted cases and agent metrics | `cases/scripted_cases.jsonl`, `evaluate.py` |
+
+LLM: `--llm anthropic` (`ANTHROPIC_API_KEY`; model `FINGUARD_LLM_MODEL`, default `claude-sonnet-5-5`),
+`--llm openai` for any OpenAI-compatible endpoint (OpenAI, Groq, a local Ollama with
+`FINGUARD_LLM_BASE_URL=http://localhost:11434/v1`), `--llm scripted` (deterministic test model, no key)
+or `--llm none` (template report, no LLM). Reports, traces and the case database go to `data/cases/`.
+Budgets: 8 tool calls, 2 re-plans, 2 report drafts and `FINGUARD_AGENT_TIME_BUDGET` seconds
+(default 90); past any of them the fixed fallback path writes the report and says so.
+Exit criteria (Project Report v3.0): 100% evidence-policy compliance, 100% of numbers traceable, at
+least 90% of claims cited. With the scripted test model all three hold on the 20 cases
+(`reports/tables/phase4_agent_summary_scripted.json`); that checks the pipeline, not an LLM; the LLM
+evaluation is `python -m finguard.agents evaluate --llm anthropic`. Example reports:
+`reports/cases_examples/`. Knowledge-base questions are scored against what the deployed retriever
+returned (`outcome_follows_evidence`); where the retriever disagrees with a case label, the case is
+listed under `retrieval_disagrees_with_label`: a knowledge-base (Phase 3) result that depends on the
+embedder, re-ranker and threshold, not an agent error. Quick test run without the two slow tests on
+the real data: `python -m pytest -q -k "not twenty_scripted and not retrieval_regression"`.
 
 ## Phase 3 results: knowledge base (frozen question set)
 
@@ -50,7 +85,9 @@ the model is registered as `lgbm_numeric-v1`; promotion to champion is a human s
 | 2 | Model bundle (builder, model, calibrator, band thresholds) | `artifacts/phase2/model_bundle.pkl` + `artifacts/phase2/lgbm_numeric/model.txt` |
 | 1 | Data-quality report, feature-engineering plan | `reports/data_quality_report.md`, `reports/feature_engineering_plan.md` |
 | 1 | Executed notebooks, figures 01-16 | `notebooks/01…04_*.ipynb`, `reports/figures/` |
-| 1-3 | Unit tests | `tests/` (61 tests; those needing the data, the artifacts or the index skip without them) |
+| 4 | Agents: tools, orchestrator, investigation and report agents, evidence policy, fallback, traces | `src/finguard/agents/`, `python -m finguard.agents` |
+| 4 | 20 scripted cases, agent metrics, example reports | `cases/`, `reports/tables/phase4_*`, `reports/cases_examples/` |
+| 1-4 | Unit tests | `tests/` (84 tests; those needing the data, the artifacts or the index skip without them) |
 
 | Notebook | Covers |
 | --- | --- |
@@ -136,7 +173,9 @@ src/finguard/
   evaluation/figures.py   figures 17-28
   explain/reasons.py      reason families, templates, stability
   rag/                    knowledge base: text, parse, chunk, index, retrieve, corpus, evaluate, tool, glossary
-corpus/                   registry.json, questions.jsonl (frozen), project documents in docs/
+  agents/                 Phase 4: tools, LLM clients, agents, prompts, evidence policy, graph, reports, evaluation
+corpus/                   registry.json, questions.jsonl (frozen), indicator_map.json, project documents in docs/
+cases/                    the 20 scripted agent cases
 tools/                    notebook build/run helpers, fallback test runner
 artifacts/                Phase 2 outputs (models, predictions, SHAP families, model bundle), registry.json
 ```

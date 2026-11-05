@@ -1,0 +1,11 @@
+{
+ "investigation": {
+  "1.0.0": "b547aac20c9dbfa178a785c35abe029754baf60d94fbcda551ad511eafbb837e"
+ },
+ "orchestrator": {
+  "1.0.0": "9dd5f030915aff7e066e92d88f37d3a81f6e84b5d0e795a0e964380f836860cb"
+ },
+ "report": {
+  "1.0.0": "969ebf04fbd1ab77108a31f7d68c3976cee528d0c63f81ac99fc98a74da2450f"
+ }
+}

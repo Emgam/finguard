@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "finguard"
 version = "0.1.0"
-description = "FinGuard AI: decision-support prototype for card-not-present payment fraud review (Phase 1: data; Phase 2: models; Phase 3: knowledge base)"
+description = "FinGuard AI: decision-support prototype for card-not-present payment fraud review (Phase 1: data; Phase 2: models; Phase 3: knowledge base; Phase 4: agents)"
 requires-python = ">=3.10"
 dependencies = [
     "pandas>=2.2",
@@ -16,15 +16,20 @@ dependencies = [
     "matplotlib>=3.8",
     "lightgbm>=4.3",
     "pdfplumber>=0.10",
+    "jsonschema>=4.18",
 ]
 
 [project.optional-dependencies]
 kb = ["sentence-transformers>=2.7"]          # dense embeddings and cross-encoder re-ranking (optional)
 mlops = ["mlflow>=2.12"]
+agents = ["langgraph>=0.2"]                  # the orchestration graph on LangGraph (a built-in engine runs without it)
 dev = ["jupyter>=1.0", "nbconvert>=7", "pytest>=8", "ruff>=0.5", "reportlab>=4.0"]   # reportlab: PDF parser tests
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"finguard.agents" = ["prompts/*.md", "prompts/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

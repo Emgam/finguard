@@ -7,7 +7,7 @@ NB2B = notebooks/09_phase2_additions.ipynb
 NB3 = notebooks/10_knowledge_base.ipynb
 RUN_NB = $(shell command -v jupyter >/dev/null 2>&1 && echo "jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=-1" || echo "$(PY) tools/run_notebooks.py")
 
-.PHONY: install data validate notebooks eda eda-fallback test all all-phase2 phase2 phase2-notebooks phase2-fallback phase2b phase2b-notebook gate glossary kb kb-eval kb-notebook all-phase3
+.PHONY: install data validate notebooks eda eda-fallback test all all-phase2 phase2 phase2-notebooks phase2-fallback phase2b phase2b-notebook gate glossary kb kb-eval kb-notebook all-phase3 agents-eval agents-demo
 
 install:            ## editable install with dev tools
 	$(PY) -m pip install -e ".[dev]"
@@ -71,3 +71,10 @@ kb-notebook:        ## notebook 10 (after `make kb kb-eval`)
 	$(RUN_NB) $(NB3)
 
 all-phase3: kb kb-eval kb-notebook test
+
+
+agents-eval:        ## Phase 4: the 20 scripted cases, orchestrated vs fallback (LLM from FINGUARD_LLM)
+	$(PY) -m finguard.agents evaluate
+
+agents-demo:        ## Phase 4: one investigation printed as a report
+	$(PY) -m finguard.agents investigate "Investigate alert TX-3554656"
