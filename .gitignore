@@ -13,3 +13,4 @@ artifacts/**/*.npz
 artifacts/**/*.pkl
 data/corpus/
 data/cases/
+.env

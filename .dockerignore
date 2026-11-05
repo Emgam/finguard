@@ -1,0 +1,19 @@
+# the image gets code, prompts and project documents only; data and models are mounted
+.git
+.github
+.venv
+venv
+**/__pycache__
+**/*.egg-info
+**/.ipynb_checkpoints
+.pytest_cache
+.ruff_cache
+data
+artifacts
+notebooks
+reports
+tests
+tools
+finguard-phase*-tmp
+*.zip
+.env

@@ -1,5 +1,6 @@
 """The evidence gathered for one request: every tool result gets an ID (T1, T2, ...) and every
-retrieved passage a global ID (S1, S2, ... across all searches). Agents may cite only these IDs.
+retrieved passage a global ID (S1, S2, ... across all searches; a passage found again by another
+search keeps its first ID). Agents may cite only these IDs.
 
 The evidence is kept as a plain list of dicts so it can live in the graph state (LangGraph
 checkpoints it) and in the trace; ``Evidence`` is a thin view over that list.
@@ -23,10 +24,18 @@ class Evidence:
         item = {"id": f"T{sum(1 for i in self.items) + 1}", "tool": tool, "args": args, "ok": error is None,
                 "output": output, "error": error, "retryable": retryable if error else None, "seconds": round(seconds, 3)}
         if error is None and tool == "policy_search":
-            start = len(self.passages())
-            ids = []
-            for n, p in enumerate(output.get("passages", []), start + 1):
-                p["label"] = f"S{n}"
+            seen = self.passages()
+            known = {p.get("chunk_id"): sid for sid, p in seen.items() if p.get("chunk_id")}
+            n, ids = len(seen), []
+            for p in output.get("passages", []):
+                cid = p.get("chunk_id")
+                if cid and cid in known:                          # the same passage from another search keeps its ID
+                    p["label"] = known[cid]
+                else:
+                    n += 1
+                    p["label"] = f"S{n}"
+                    if cid:
+                        known[cid] = p["label"]
                 ids.append(p["label"])
             item["passage_ids"] = ids
         self.items.append(item)

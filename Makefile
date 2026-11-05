@@ -7,7 +7,7 @@ NB2B = notebooks/09_phase2_additions.ipynb
 NB3 = notebooks/10_knowledge_base.ipynb
 RUN_NB = $(shell command -v jupyter >/dev/null 2>&1 && echo "jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=-1" || echo "$(PY) tools/run_notebooks.py")
 
-.PHONY: install data validate notebooks eda eda-fallback test all all-phase2 phase2 phase2-notebooks phase2-fallback phase2b phase2b-notebook gate glossary kb kb-eval kb-notebook all-phase3 agents-eval agents-demo
+.PHONY: install data validate notebooks eda eda-fallback test all all-phase2 phase2 phase2-notebooks phase2-fallback phase2b phase2b-notebook gate glossary kb kb-eval kb-notebook all-phase3 agents-eval agents-demo serve serve-demo demo release-check docker-up docker-demo
 
 install:            ## editable install with dev tools
 	$(PY) -m pip install -e ".[dev]"
@@ -78,3 +78,21 @@ agents-eval:        ## Phase 4: the 20 scripted cases, orchestrated vs fallback 
 
 agents-demo:        ## Phase 4: one investigation printed as a report
 	$(PY) -m finguard.agents investigate "Investigate alert TX-3554656"
+
+serve:              ## Phase 5: API + dashboard on http://127.0.0.1:8000 (real data, model and index)
+	$(PY) -m finguard.api serve
+
+serve-demo:         ## Phase 5: same, on the synthetic demo world (no data needed)
+	$(PY) -m finguard.api serve --world synthetic --llm scripted
+
+demo:               ## Phase 5 exit criterion: timed alert-to-report run against the running API (< 60 s)
+	$(PY) -m finguard.api demo
+
+release-check:      ## every gate on the real data: data, model, prompts, tests, deployment demo
+	$(PY) tools/release_check.py
+
+docker-up:          ## Phase 5: build and start the container (real world; mounts data/ and artifacts/)
+	docker compose up --build -d
+
+docker-demo:        ## Phase 5: the container on the synthetic world, as in CI
+	FINGUARD_WORLD=synthetic FINGUARD_LLM=scripted FINGUARD_INSTALL_KB=false docker compose up --build -d --wait

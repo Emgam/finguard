@@ -1,13 +1,55 @@
 # FinGuard AI
 
 Decision-support prototype for card-not-present payment fraud review, built on the IEEE-CIS
-Fraud Detection dataset. **This repository is in Phase 4: an LLM orchestrator and two writing agents
-that investigate an alert with six tools and produce a cited case report, inside an evidence policy
-checked in code. Phases 1-3 built the data foundation, the calibrated model with reasons and the
-cited knowledge base.**
+Fraud Detection dataset. **This repository is in Phase 5: a FastAPI service and an analyst dashboard
+(alert queue, case view, assistant, cases) in a Docker container, with GitHub Actions running the
+gates. Phases 1-4 built the data foundation, the calibrated model with reasons, the cited knowledge
+base and the LLM orchestrator whose reports are checked against an evidence policy in code.**
 
 > IEEE-CIS has **no customer identifier**. All grouping of transactions in this project is a
 > heuristic **proxy entity** (card1 + addr1 + first-seen day), never a customer.
+
+## Phase 5: API, dashboard, CI/CD
+
+```bash
+pip install -e ".[api]"                       # FastAPI, uvicorn, httpx
+python -m finguard.api serve                  # dashboard http://127.0.0.1:8000/  API docs /docs
+python -m finguard.api serve --world synthetic --llm scripted   # without the data: invented transactions
+python -m finguard.api demo --llm anthropic   # exit criterion: timed alert-to-report run (< 60 s)
+python tools/release_check.py                 # every gate on the real data, model and index
+docker compose up --build -d                  # the container (mounts data/ and artifacts/)
+```
+
+| Piece | Where |
+| --- | --- |
+| Endpoints and their JSON-schema contract; versions on every reply | `src/finguard/api/service.py` |
+| HTTP layer: FastAPI (OpenAPI at `/docs`), Starlette if FastAPI is absent | `app.py` |
+| Evidence source: real data, model and index, or the synthetic demo world | `world.py`, `synthetic.py` |
+| Dashboard: alert queue, case view (score, reasons, flags, proxy entity), investigation and report, assistant, cases, analyst decisions | `static/dashboard.html` |
+| Health check and the timed alert-to-report demo (standard library) | `client.py` |
+| Container | `Dockerfile`, `docker-compose.yml` |
+| CI: lint, tests, container deployment gate | `.github/workflows/ci.yml` |
+| Every gate on the real data | `tools/release_check.py` |
+
+Endpoints: `GET /api/health`, `/api/versions`, `/api/alerts`, `/api/transactions/{id}`,
+`POST /api/investigations`, `POST /api/chat`, `GET /api/cases`, `/api/cases/{id}`,
+`/api/cases/{id}/report.md`, `POST /api/cases/{id}/decision`. Every reply carries the model,
+index and prompt versions (`X-FinGuard-*` headers and a `versions` field). The alert queue is the
+test month scored once by the served model (High and Medium bands); the registry's champion alias
+must be the served model (`FINGUARD_REQUIRE_CHAMPION=1` refuses to start otherwise). The API starts
+at once and loads the data in the background (`/api/health` answers 503 until ready). An
+investigation gets `FINGUARD_API_TIME_BUDGET` seconds (default 40) and its LLM calls are cut 10 s
+after that, so alert-to-report stays under 60 s: past the budget the fallback path writes the report
+and says so.
+
+Exit criteria (Project Report v3.0): alert-to-report demo under 60 s (`python -m finguard.api demo`,
+written to `reports/tables/phase5_demo_<llm>.json`) and CI green on a pull request. CI cannot run the
+gates that need the Kaggle data, the model files or the downloaded documents (they are not in Git);
+it runs lint, the synthetic tests and the container on the synthetic world, and
+`tools/release_check.py` runs the rest locally (`reports/tables/phase5_release_check.json`).
+The Docker image pins nothing by default; put a `constraints.txt` (numpy, pandas, scikit-learn,
+scipy, lightgbm, pyarrow versions of the machine that trained the model) next to the Dockerfile so
+the container unpickles the artifacts with the same versions.
 
 ## Phase 4: orchestrator and agents
 
@@ -26,10 +68,30 @@ python -m finguard.agents evaluate --llm anthropic        # 20 scripted cases, o
 | Reports (Facts by template), traces, case database | `report.py`, `trace.py`, `case_store.py` |
 | 20 scripted cases and agent metrics | `cases/scripted_cases.jsonl`, `evaluate.py` |
 
-LLM: `--llm anthropic` (`ANTHROPIC_API_KEY`; model `FINGUARD_LLM_MODEL`, default `claude-sonnet-5-5`),
-`--llm openai` for any OpenAI-compatible endpoint (OpenAI, Groq, a local Ollama with
-`FINGUARD_LLM_BASE_URL=http://localhost:11434/v1`), `--llm scripted` (deterministic test model, no key)
-or `--llm none` (template report, no LLM). Reports, traces and the case database go to `data/cases/`.
+LLM (`--llm` or `FINGUARD_LLM`). The default is **`auto`**: Groq `openai/gpt-oss-120b` (free tier,
+`GROQ_API_KEY`) first; when Groq cannot answer (no key, no network, rate limit), Ollama
+`qwen2.5:3b-instruct-q4_K_M` (Qwen2.5 3B, Q4_K_M quantization) on this computer; when neither answers,
+the fixed fallback path writes a template report. Each report's run record names the model that
+wrote it. Scores, probabilities, bands and SHAP reasons are always computed in Python by the tools
+(LightGBM, isotonic calibration, TreeSHAP); the LLM only plans and writes, and the evidence policy
+rejects any number that is not in a tool output.
+
+| `--llm` | Cost | Settings |
+| --- | --- | --- |
+| `auto` (default) | free | Groq, then Ollama, then the template report |
+| `groq` | free tier (rate-limited) | `GROQ_API_KEY`; `GROQ_MODEL` (default `openai/gpt-oss-120b`) |
+| `ollama` | free, offline | Ollama's native API at `OLLAMA_BASE_URL` (default `http://localhost:11434`); `OLLAMA_MODEL` (default `qwen2.5:3b-instruct-q4_K_M`); context window `FINGUARD_OLLAMA_NUM_CTX` (default 8192; Ollama's own default of 4096 would cut the evidence) |
+| `gemini`, `openrouter` | free tiers | `GEMINI_API_KEY` + `GEMINI_MODEL`; `OPENROUTER_API_KEY` + `OPENROUTER_MODEL` |
+| `openai`, `anthropic` | paid or self-hosted | `FINGUARD_LLM_BASE_URL`, `FINGUARD_LLM_API_KEY`, `FINGUARD_LLM_MODEL`; `ANTHROPIC_API_KEY` |
+| `scripted`, `none` | free, no LLM | deterministic test model; template report |
+
+Groq and Ollama run lean (`FINGUARD_AGENT_LEAN=1`: the report agent works from the evidence
+directly, two LLM calls instead of three) with shortened passages (`FINGUARD_PROMPT_PASSAGE_CHARS`,
+700 and 600; quotes stay verbatim), which keeps an investigation within Groq's free per-minute token
+limit and Ollama's context window. A rate-limited call waits for the provider's `retry-after`; in the
+`auto` chain Groq waits at most 15 s before Ollama takes over, and an unreachable member is skipped for
+60 s. The evaluation runs in parts with `--cases c01-c10` and `--resume`. Reports, traces and the
+case database go to `data/cases/`.
 Budgets: 8 tool calls, 2 re-plans, 2 report drafts and `FINGUARD_AGENT_TIME_BUDGET` seconds
 (default 90); past any of them the fixed fallback path writes the report and says so.
 Exit criteria (Project Report v3.0): 100% evidence-policy compliance, 100% of numbers traceable, at
@@ -87,7 +149,8 @@ the model is registered as `lgbm_numeric-v1`; promotion to champion is a human s
 | 1 | Executed notebooks, figures 01-16 | `notebooks/01…04_*.ipynb`, `reports/figures/` |
 | 4 | Agents: tools, orchestrator, investigation and report agents, evidence policy, fallback, traces | `src/finguard/agents/`, `python -m finguard.agents` |
 | 4 | 20 scripted cases, agent metrics, example reports | `cases/`, `reports/tables/phase4_*`, `reports/cases_examples/` |
-| 1-4 | Unit tests | `tests/` (84 tests; those needing the data, the artifacts or the index skip without them) |
+| 5 | API and dashboard, container, CI/CD, release check | `src/finguard/api/`, `Dockerfile`, `docker-compose.yml`, `.github/workflows/ci.yml`, `tools/release_check.py` |
+| 1-5 | Unit tests | `tests/` (107 tests; those needing the data, the artifacts, the index or the web packages skip without them) |
 
 | Notebook | Covers |
 | --- | --- |
@@ -174,9 +237,11 @@ src/finguard/
   explain/reasons.py      reason families, templates, stability
   rag/                    knowledge base: text, parse, chunk, index, retrieve, corpus, evaluate, tool, glossary
   agents/                 Phase 4: tools, LLM clients, agents, prompts, evidence policy, graph, reports, evaluation
+  api/                    Phase 5: service (endpoints, contract), app (FastAPI), worlds, client, static/dashboard.html
 corpus/                   registry.json, questions.jsonl (frozen), indicator_map.json, project documents in docs/
 cases/                    the 20 scripted agent cases
-tools/                    notebook build/run helpers, fallback test runner
+tools/                    notebook build/run helpers, fallback test runner, release_check.py (every gate)
+Dockerfile, docker-compose.yml, .github/workflows/ci.yml   Phase 5 container and CI
 artifacts/                Phase 2 outputs (models, predictions, SHAP families, model bundle), registry.json
 ```
 

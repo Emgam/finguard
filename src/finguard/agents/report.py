@@ -233,6 +233,24 @@ def _source_line(item_or_passage: dict, is_passage: bool) -> str:
     return f"- [{i['id']}] `{i['tool']}({args})`: {status}"
 
 
+def _llm_line(llm: dict) -> str:
+    if not llm.get("model"):
+        return "none"
+    if "served" in llm:                                          # a chain (auto: Groq, then Ollama offline)
+        if llm["served"]:
+            who = "; ".join(f"{k} ({n} call{'s' if n > 1 else ''})" for k, n in llm["served"].items())
+        else:
+            who = "no LLM answered"
+        who += f" [{llm.get('name')}: {llm['model'] if not llm['served'] else 'Groq first, Ollama offline fallback'}]"
+        if llm.get("fallbacks"):
+            who += f"; {len(llm['fallbacks'])} call(s) handed to the fallback"
+    else:
+        who = f"{llm['model']} ({llm['name']})" if llm.get("name") and llm["name"] not in ("anthropic", "scripted") else llm["model"]
+    modes = (["lean: no investigation agent"] if llm.get("lean") else []) + (
+        [f"passages shown up to {llm['passage_chars']} characters"] if llm.get("passage_chars") not in (None, 1500) else [])
+    return who + (f", {'; '.join(modes)}" if modes else "")
+
+
 def render(case: dict) -> str:
     ev = Evidence(case.get("evidence", []))
     rep = case.get("report") or {}
@@ -263,7 +281,7 @@ def render(case: dict) -> str:
         for g in rep["guidance"]:
             p = passages.get(g["cites"][0], {})
             fic = " *(fictional playbook)*" if p.get("fictional") else ""
-            L += [f"> \"{g['quote']}\"", f">", f"> {_cite(g['cites']).strip()} *{p.get('title')}*, {p.get('section')}"
+            L += [f"> \"{g['quote']}\"", ">", f"> {_cite(g['cites']).strip()} *{p.get('title')}*, {p.get('section')}"
                   f"{_pages(p, ', ')} ({p.get('publisher')}, {p.get('published')}; {p.get('jurisdiction')}){fic}", ""]
             if g.get("note"):
                 L += [g["note"], ""]
@@ -283,7 +301,7 @@ def render(case: dict) -> str:
     L += ["", "## Run record", "",
           f"- Model {v.get('model_version')}; index {v.get('index_version')} ({v.get('embedder')}, re-ranker "
           f"{v.get('reranker')}, variant {v.get('retrieval_variant')}); indicator map {v.get('indicator_map')}; "
-          f"prompts {', '.join(case.get('prompts', [])) or 'none'}; LLM {case.get('llm', {}).get('model') or 'none'}.",
+          f"prompts {', '.join(case.get('prompts', [])) or 'none'}; LLM {_llm_line(case.get('llm') or {})}.",
           f"- Evidence policy: {'passed' if pol.get('passed') else 'FAILED'}; claims cited {pol.get('cited')}/{pol.get('claims')}, "
           f"numbers traceable {pol.get('traceable')}/{pol.get('numbers')}"
           + (f"; first agent draft: {first.get('cited')}/{first.get('claims')} cited, {first.get('traceable')}/"

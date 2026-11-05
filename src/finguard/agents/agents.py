@@ -50,17 +50,25 @@ def orchestrate(llm, prompt: Prompt, request: str, transaction_ids: list[int], t
     return _call(llm, prompt, user, ctx, schemas.PLAN, tracer, "orchestrator", system=system)
 
 
+def _evidence_text(llm, ev: Evidence) -> str:
+    """The evidence pack; ``passage_chars`` (compact mode for free tiers and small models) shortens passages."""
+    return ev.prompt_text(max_passage_chars=int(getattr(llm, "passage_chars", 1500) or 1500))
+
+
 def investigate(llm, prompt: Prompt, request: str, request_type: str, ev: Evidence, tracer) -> dict:
-    user = f"Request type: {request_type}\nAnalyst request:\n{request}\n\nEvidence:\n{ev.prompt_text()}"
+    user = f"Request type: {request_type}\nAnalyst request:\n{request}\n\nEvidence:\n{_evidence_text(llm, ev)}"
     ctx = {"request": request, "request_type": request_type, "evidence": ev.items}
     return _call(llm, prompt, user, ctx, schemas.INVESTIGATION, tracer, "investigation")
 
 
 def write_report(llm, prompt: Prompt, request: str, request_type: str, ev: Evidence, investigation: dict | None, tracer,
                  feedback: str | None = None, previous: dict | None = None) -> dict:
-    user = f"Request type: {request_type}\nAnalyst request:\n{request}\n\nEvidence:\n{ev.prompt_text()}"
+    user = f"Request type: {request_type}\nAnalyst request:\n{request}\n\nEvidence:\n{_evidence_text(llm, ev)}"
     if investigation is not None:
         user += f"\n\nInvestigation agent output:\n{json.dumps(investigation, ensure_ascii=False)}"
+    elif request_type != "typology":
+        user += ("\n\nNo investigation agent output (lean mode): interpret the evidence yourself, with the same "
+                 "rules for citations, numbers and hedging.")
     if feedback:
         user += (f"\n\nYour previous report:\n{json.dumps(previous, ensure_ascii=False)}\n\nProblems found by code:\n"
                  f"{feedback}\nReturn the whole corrected report JSON.")

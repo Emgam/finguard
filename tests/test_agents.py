@@ -399,3 +399,256 @@ def test_case_store_reads_saves_and_records_people_decisions():
             raise AssertionError(bad)
         except (ValueError, KeyError):
             pass
+
+
+# --------------------------------------------------------------------------- free tiers (Phase 5)
+def _env_cleared(names):
+    saved = {n: os.environ.pop(n, None) for n in names}
+    return saved
+
+
+def _env_restore(saved):
+    for n, v in saved.items():
+        if v is None:
+            os.environ.pop(n, None)
+        else:
+            os.environ[n] = v
+
+
+def test_free_provider_presets_fill_in_address_key_and_model():
+    from finguard.agents.llm import LLMError, make_llm
+    names = ["GROQ_API_KEY", "GROQ_MODEL", "GEMINI_API_KEY", "GEMINI_MODEL", "OLLAMA_MODEL", "OLLAMA_BASE_URL",
+             "FINGUARD_AGENT_LEAN", "FINGUARD_PROMPT_PASSAGE_CHARS", "FINGUARD_LLM_REASONING_EFFORT", "FINGUARD_OLLAMA_NUM_CTX"]
+    saved = _env_cleared(names)
+    try:
+        os.environ["GROQ_API_KEY"] = "gk"
+        g = make_llm("groq")
+        assert (g.name, g.base_url, g.model, g.api_key) == ("groq", "https://api.groq.com/openai/v1", "openai/gpt-oss-120b", "gk")
+        assert g.lean and g.passage_chars == 700 and g.request_body("s", "u")["reasoning_effort"] == "low"
+        os.environ["FINGUARD_AGENT_LEAN"] = "0"
+        os.environ["FINGUARD_PROMPT_PASSAGE_CHARS"] = "900"
+        g = make_llm("groq")
+        assert not g.lean and g.passage_chars == 900
+        try:
+            make_llm("gemini")
+            raise AssertionError("gemini needs a key and a model")
+        except LLMError as e:
+            assert "GEMINI" in str(e)
+        os.environ.pop("FINGUARD_AGENT_LEAN")
+        o = make_llm("ollama")                                  # local, native API, no key
+        assert o.base_url == "http://localhost:11434" and o.model == "qwen2.5:3b-instruct-q4_K_M" and o.lean
+        body = o.request_body("s", "u")
+        assert body["options"] == {"temperature": 0, "num_ctx": 8192} and body["format"] == "json" and body["stream"] is False
+        os.environ["OLLAMA_BASE_URL"] = "http://host.docker.internal:11434/v1"   # the OpenAI-style address works too
+        assert make_llm("ollama").base_url == "http://host.docker.internal:11434"
+    finally:
+        _env_restore(saved)
+
+
+class _Limited(BaseHTTPRequestHandler):
+    hits = 0
+
+    def do_POST(self):
+        self.rfile.read(int(self.headers["content-length"]))
+        _Limited.hits += 1
+        if self.path.startswith("/big"):
+            self.send_response(413)
+            self.end_headers()
+            self.wfile.write(b'{"error": {"message": "Request too large for model: tokens per minute limit"}}')
+            return
+        if _Limited.hits == 1:
+            self.send_response(429)
+            self.send_header("retry-after", "1")
+            self.end_headers()
+            self.wfile.write(b'{"error": {"message": "Rate limit reached"}}')
+            return
+        data = json.dumps({"model": "m", "choices": [{"message": {"content": '{"ok": true}'}}]}).encode()
+        self.send_response(200)
+        self.send_header("content-type", "application/json")
+        self.send_header("content-length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def log_message(self, *a):
+        pass
+
+
+def test_rate_limits_wait_for_retry_after_and_oversized_requests_say_what_to_change():
+    import time
+    from finguard.agents.llm import LLMError
+    os.environ["NO_PROXY"] = os.environ["no_proxy"] = "127.0.0.1,localhost"
+    srv = HTTPServer(("127.0.0.1", 0), _Limited)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    base = f"http://127.0.0.1:{srv.server_address[1]}"
+    try:
+        _Limited.hits = 0
+        t0 = time.time()
+        r = OpenAICompatibleLLM(model="m", base_url=base + "/v1").complete("report", "s", "u")
+        assert parse_json(r.text) == {"ok": True} and _Limited.hits == 2 and time.time() - t0 >= 1.0
+        _Limited.hits = 0
+        try:
+            OpenAICompatibleLLM(model="m", base_url=base + "/big").complete("report", "s", "u")
+            raise AssertionError("413 must not be retried")
+        except LLMError as e:
+            assert e.status == 413 and "FINGUARD_AGENT_LEAN" in str(e) and _Limited.hits == 1
+    finally:
+        srv.shutdown()
+
+
+def test_a_passage_found_by_two_searches_keeps_one_id():
+    ev = Evidence()
+    tools = Tools(_Ctx(), functions=fake_functions())
+    a = tools.call(ev, "policy_search", {"query": "Visa 10.4"})
+    b = tools.call(ev, "policy_search", {"query": "card absent dispute"})       # the same passage again
+    c = tools.call(ev, "policy_search", {"query": "email domains"})
+    assert a["passage_ids"] == b["passage_ids"] == ["S1"] and c["passage_ids"] == ["S2"]
+    assert list(ev.passages()) == ["S1", "S2"] and ev.prompt_text().count("[S1]") == 1
+
+
+def test_lean_mode_skips_the_investigation_agent():
+    llm = ScriptedLLM()
+    llm.lean, llm.passage_chars = True, 400
+    case = orchestrator(llm).run(f"Investigate alert TX-{TID}")
+    assert case["path"] == "orchestrated" and case["llm_calls"] == 2 and case["policy"]["passed"]
+    assert "lean: no investigation agent" in case["markdown"] and "up to 400 characters" in case["markdown"]
+
+
+def test_evaluation_runs_a_subset_and_resumes_into_one_table():
+    import tempfile
+    from pathlib import Path
+
+    import pandas as pd
+    from finguard.agents.evaluate import run, select_cases
+    assert [c["id"] for c in select_cases("c01,c03-c04")] == ["c01", "c03", "c04"]
+    try:
+        select_cases("c99")
+        raise AssertionError("unknown case ids are refused")
+    except ValueError:
+        pass
+    specs = [{"id": "c01", "stratum": "s", "request": f"Investigate alert TX-{TID}.", "transaction_id": TID,
+              "expected_type": "investigate", "expected_outcome": "report"},
+             {"id": "c02", "stratum": "s", "request": "Block the card used in TX-3554656.", "transaction_id": TID,
+              "expected_type": "out_of_scope", "expected_outcome": "refusal"}]
+    out = Path(tempfile.mkdtemp())
+    main, fb = orchestrator(ScriptedLLM()), orchestrator(ScriptedLLM(), force_fallback=True)
+    first = run(main, fb, cases=specs[:1], out_dir=out, log=lambda *_: None)
+    assert first["cases_done"] == 1
+    lines = []
+    second = run(main, fb, cases=specs, out_dir=out, log=lines.append, resume=True)
+    table = pd.read_csv(out / "phase4_agent_cases_scripted.csv")
+    assert second["cases_done"] == 2 and len(table) == 4 and "1 case(s) already" in lines[0]
+    assert second["summary"]["orchestrated"]["cases"] == 2
+
+
+# --------------------------------------------------------------------------- Groq first, Ollama offline
+class _Ollama(BaseHTTPRequestHandler):
+    seen = []
+
+    def do_POST(self):
+        body = json.loads(self.rfile.read(int(self.headers["content-length"])))
+        _Ollama.seen.append((self.path, body))
+        if body["model"] == "missing":
+            self.send_response(404)
+            self.end_headers()
+            self.wfile.write(b'{"error": "model not found, try pulling it first"}')
+            return
+        out = {"model": body["model"], "message": {"role": "assistant", "content": '{"ok": true}'}, "done": True,
+               "done_reason": "stop", "prompt_eval_count": 120, "eval_count": 8}
+        data = json.dumps(out).encode()
+        self.send_response(200)
+        self.send_header("content-type", "application/json")
+        self.send_header("content-length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def log_message(self, *a):
+        pass
+
+
+def test_ollama_native_client_sets_the_context_window_and_reports_missing_models():
+    from finguard.agents.llm import LLMError, OllamaLLM
+    os.environ["NO_PROXY"] = os.environ["no_proxy"] = "127.0.0.1,localhost"
+    srv = HTTPServer(("127.0.0.1", 0), _Ollama)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    base = f"http://127.0.0.1:{srv.server_address[1]}"
+    try:
+        r = OllamaLLM(model="qwen2.5:3b-instruct-q4_K_M", base_url=base, num_ctx=8192).complete("report", "SYS", "USER")
+        path, body = _Ollama.seen[-1]
+        assert path == "/api/chat" and body["options"]["num_ctx"] == 8192 and body["options"]["temperature"] == 0
+        assert body["format"] == "json" and body["messages"][0] == {"role": "system", "content": "SYS"}
+        assert parse_json(r.text) == {"ok": True} and r.usage == {"input_tokens": 120, "output_tokens": 8}
+        try:
+            OllamaLLM(model="missing", base_url=base).complete("report", "s", "u")
+            raise AssertionError("a missing model must be reported")
+        except LLMError as e:
+            assert "ollama pull missing" in str(e)
+        try:
+            OllamaLLM(base_url=base, num_ctx=2048).complete("report", "s", "x" * 8000)
+            raise AssertionError("a prompt larger than the context window must not be sent")
+        except LLMError as e:
+            assert "context window" in str(e)
+    finally:
+        srv.shutdown()
+
+
+class _Down:
+    """A primary that cannot be reached (no network)."""
+    name, model, base_url, lean, passage_chars = "groq", "openai/gpt-oss-120b", "https://down.example", True, 700
+
+    def __init__(self):
+        self.calls, self.deadline, self.retries, self.max_wait = 0, None, 3, None
+
+    def complete(self, agent, system, user, context=None):
+        from finguard.agents.llm import LLMError
+        self.calls += 1
+        raise LLMError("cannot reach https://down.example: network is unreachable")
+
+
+def test_auto_chain_falls_back_to_ollama_and_records_who_answered():
+    from finguard.agents.llm import _COOLDOWN, ChainLLM, LLMError
+    _COOLDOWN.clear()
+    primary, local = _Down(), ScriptedLLM()
+    local.name, local.model = "ollama", "qwen2.5:3b-instruct-q4_K_M"
+    chain = ChainLLM([primary, local])
+    chain.name = "auto"
+    assert primary.retries == 1 and primary.max_wait == 15.0       # a primary with a fallback does not wait long
+    case = orchestrator(chain).run(f"Investigate alert TX-{TID}")
+    assert case["path"] == "orchestrated" and case["policy"]["passed"]
+    assert case["llm"]["served"] == {"ollama qwen2.5:3b-instruct-q4_K_M": case["llm_calls"]}
+    assert primary.calls == 1                                      # unreachable once, then skipped (cool-down)
+    assert "ollama qwen2.5:3b-instruct-q4_K_M" in case["markdown"] and case["llm"]["fallbacks"]
+    _COOLDOWN.clear()
+    try:
+        ChainLLM([_Down()]).complete("report", "s", "u")
+        raise AssertionError("an empty chain must fail")
+    except LLMError as e:
+        assert "no LLM could answer" in str(e)
+    _COOLDOWN.clear()
+
+
+def test_auto_starts_at_ollama_when_there_is_no_groq_key():
+    from finguard.agents.llm import make_llm
+    saved = _env_cleared(["GROQ_API_KEY", "FINGUARD_LLM", "OLLAMA_MODEL", "OLLAMA_BASE_URL"])
+    try:
+        chain = make_llm()                                          # the default is auto
+        assert chain.name == "auto" and [m.name for m in chain.members] == ["ollama"] and "groq" in chain.skipped
+        os.environ["GROQ_API_KEY"] = "gk"
+        chain = make_llm("auto")
+        assert [m.name for m in chain.members] == ["groq", "ollama"] and chain.lean
+        assert chain.model == "groq openai/gpt-oss-120b -> ollama qwen2.5:3b-instruct-q4_K_M"
+    finally:
+        _env_restore(saved)
+
+
+def test_scores_and_shap_are_computed_in_python_never_by_an_llm():
+    """The scorer, the reasons (TreeSHAP), the models and the tools do not import or call any LLM code."""
+    from pathlib import Path
+
+    import finguard
+    root = Path(finguard.__file__).parent
+    for folder in ("serving", "explain", "models", "features", "evaluation"):
+        for f in (root / folder).glob("*.py"):
+            text = f.read_text(encoding="utf-8")
+            assert "finguard.agents.llm" not in text and "make_llm" not in text and "urllib.request" not in text, f
+    tools = (root / "agents" / "tools.py").read_text(encoding="utf-8")
+    assert "agents.llm" not in tools and "make_llm" not in tools

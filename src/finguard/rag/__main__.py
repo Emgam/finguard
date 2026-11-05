@@ -17,7 +17,7 @@ import time
 from pathlib import Path
 
 from finguard.rag import corpus, evaluate as ev
-from finguard.rag.retrieve import VARIANTS, Retriever
+from finguard.rag.retrieve import VARIANTS
 
 
 def cmd_register(a) -> None:

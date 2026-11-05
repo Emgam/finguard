@@ -103,3 +103,41 @@ class CaseStore:
         with self._db() as db:
             r = db.execute("SELECT * FROM cases WHERE case_id = ?", (case_id,)).fetchone()
         return None if r is None else dict(r)
+
+    # ------------------------------------------------------------------ listings (API and dashboard)
+    _LATEST = ("LEFT JOIN decisions d ON d.case_id = c.case_id AND d.rowid = "
+               "(SELECT MAX(rowid) FROM decisions WHERE case_id = c.case_id)")
+
+    def list(self, limit: int = 50, offset: int = 0, transaction_id: int | None = None,
+             status: str | None = None) -> dict:
+        """Cases, newest first, each with its latest decision (if any)."""
+        where, args = [], []
+        if transaction_id is not None:
+            where.append("c.transaction_id = ?")
+            args.append(int(transaction_id))
+        if status:
+            where.append("c.status = ?")
+            args.append(status)
+        cond = f" WHERE {' AND '.join(where)}" if where else ""
+        with self._db() as db:
+            total = db.execute(f"SELECT COUNT(*) FROM cases c{cond}", args).fetchone()[0]
+            rows = [dict(r) for r in db.execute(
+                "SELECT c.case_id, c.created_at, c.transaction_id, c.request, c.request_type, c.outcome, c.path, c.band, "
+                "c.score, c.model_version, c.index_version, c.status, d.decision, d.analyst, d.decided_at, d.note "
+                f"FROM cases c {self._LATEST}{cond} ORDER BY c.created_at DESC, c.rowid DESC LIMIT ? OFFSET ?",
+                args + [int(limit), int(offset)])]
+        return {"total": int(total), "cases": rows}
+
+    def decisions(self, case_id: str) -> list[dict]:
+        with self._db() as db:
+            return [dict(r) for r in db.execute(
+                "SELECT decided_at, decision, analyst, note FROM decisions WHERE case_id = ? ORDER BY rowid", (case_id,))]
+
+    def status_by_transaction(self) -> dict[int, dict]:
+        """Latest case per transaction: {transaction_id: {case_id, status, decision}} (for the alert queue)."""
+        with self._db() as db:
+            rows = db.execute(
+                f"SELECT c.transaction_id, c.case_id, c.status, d.decision FROM cases c {self._LATEST} "
+                "WHERE c.transaction_id IS NOT NULL ORDER BY c.created_at, c.rowid").fetchall()
+        return {int(r["transaction_id"]): {"case_id": r["case_id"], "status": r["status"], "decision": r["decision"]}
+                for r in rows}

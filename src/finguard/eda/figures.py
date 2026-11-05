@@ -172,7 +172,6 @@ def fig05_block_missing_by_product(df: pd.DataFrame, blocks: pd.DataFrame):
     cb.set_label("Missing share", color=S.INK2)
     cb.ax.yaxis.set_major_formatter(lambda v, _: f"{v * 100:.0f}%")
     cb.outline.set_visible(False)
-    full = int(((m.drop(columns="all") > 0.99) | (m.drop(columns="all") < 0.01)).all(axis=1).sum())
     S.headline(fig, "Missingness is structural: whole column blocks vanish for specific products",
                f"Missing share (%) of each block of columns that go missing together, by ProductCD. {len(m)} blocks cover {int(blocks.n_cols.sum())} columns",
                top=0.9)

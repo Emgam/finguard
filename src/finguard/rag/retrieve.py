@@ -93,7 +93,7 @@ class CrossEncoderReranker:
 
 
 def make_reranker(name: str | None = None):
-    name = name or os.environ.get("FINGUARD_RERANKER", "lexical")
+    name = name or os.environ.get("FINGUARD_RERANKER") or "lexical"           # empty = unset (Docker Compose)
     return LexicalReranker() if name in ("lexical", LexicalReranker.name) else CrossEncoderReranker(name)
 
 

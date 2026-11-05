@@ -38,6 +38,7 @@ from finguard.agents import agents as A
 from finguard.agents import policy, rules, schemas
 from finguard.agents.case_store import CASE_DIR
 from finguard.agents.evidence import Evidence
+from finguard.agents.llm import LLMError
 from finguard.agents.prompt_store import load_all
 from finguard.agents.report import DISCLAIMER, render, template_report
 from finguard.agents.tools import Tools, transaction_ids
@@ -45,6 +46,7 @@ from finguard.agents.trace import NullTracer, Tracer
 
 END = "__end__"
 TIME_BUDGET = float(os.environ.get("FINGUARD_AGENT_TIME_BUDGET", "90"))
+LLM_GRACE = float(os.environ.get("FINGUARD_LLM_GRACE", "10"))   # a call started inside the budget may finish this much later
 MAX_REPORT_DRAFTS = 2
 MAX_SEARCHES_FROM_MAP = 3
 
@@ -71,6 +73,13 @@ class AgentState(TypedDict, total=False):
     outcome: str
     message: str
     llm_calls: int
+    llm_down: bool
+
+
+def _llm_down(e: Exception) -> bool:
+    """The LLM could not answer at all (unreachable, out of quota, all of a chain failed): asking the
+    same LLM again in this run will not help, so the run goes to the fallback path at once."""
+    return isinstance(e.__cause__, LLMError)
 
 
 # --------------------------------------------------------------------------- built-in engine
@@ -206,6 +215,9 @@ class Orchestrator:
             plan = A.orchestrate(self.llm, self.prompts["orchestrator"], s["request"], s["transaction_ids"], self.tracer, feedback)
         except A.AgentOutputError as e:
             self.tracer.event("plan_rejected", problems=[str(e)])
+            if _llm_down(e):
+                return {"plan": None, "plan_problems": [str(e)], "llm_down": True, "llm_calls": s.get("llm_calls", 0) + 1,
+                        "fallback_reason": f"LLM unavailable: {e}"[:300]}
             return {"plan": None, "plan_problems": [str(e)], "replans": s.get("replans", 0) + 1,
                     "llm_calls": s.get("llm_calls", 0) + 1}
         problems, updates = self._validate_plan(plan, s)
@@ -241,7 +253,7 @@ class Orchestrator:
             return "finalize"
         if s.get("plan") is not None:
             return "execute"
-        if s.get("replans", 0) <= schemas.MAX_REPLANS and not self._over_budget(s):
+        if s.get("replans", 0) <= schemas.MAX_REPLANS and not self._over_budget(s) and not s.get("llm_down"):
             return "plan"
         return "fallback"
 
@@ -328,7 +340,9 @@ class Orchestrator:
             return "plan" if s.get("replans", 0) <= schemas.MAX_REPLANS and not self._over_budget(s) else "fallback"
         if self._over_budget(s):
             return "fallback"
-        return "write" if s["request_type"] == "typology" else "investigate"
+        if s["request_type"] == "typology" or getattr(self.llm, "lean", False):
+            return "write"                            # lean mode: the report agent works from the evidence directly
+        return "investigate"
 
     def n_investigate(self, s):
         ev = Evidence(s["evidence"])
@@ -338,12 +352,13 @@ class Orchestrator:
         except A.AgentOutputError as e:
             self.tracer.event("investigation_rejected", error=str(e))
             return {"investigation": None, "inv_attempts": s.get("inv_attempts", 0) + 1, "llm_calls": s.get("llm_calls", 0) + 1,
-                    "fallback_reason": str(e)[:200]}
+                    "fallback_reason": (f"LLM unavailable: {e}" if _llm_down(e) else str(e))[:300], "llm_down": _llm_down(e)}
 
     def r_investigate(self, s):
         if s.get("investigation") is not None and not self._over_budget(s):
             return "write"
-        return "investigate" if s.get("inv_attempts", 0) < 2 and not self._over_budget(s) else "fallback"
+        retry = s.get("inv_attempts", 0) < 2 and not self._over_budget(s) and not s.get("llm_down")
+        return "investigate" if retry else "fallback"
 
     def n_write(self, s):
         ev = Evidence(s["evidence"])
@@ -354,12 +369,14 @@ class Orchestrator:
         except A.AgentOutputError as e:
             self.tracer.event("report_rejected", error=str(e))
             return {"report": None, "drafts": s.get("drafts", 0) + 1, "llm_calls": s.get("llm_calls", 0) + 1,
-                    "feedback": None, "fallback_reason": str(e)[:200]}
+                    "feedback": None, "fallback_reason": (f"LLM unavailable: {e}" if _llm_down(e) else str(e))[:300],
+                    "llm_down": _llm_down(e)}
 
     def r_write(self, s):
         if s.get("report") is not None:
             return "validate"                     # a finished draft is always checked, even past the budget
-        return "write" if s.get("drafts", 0) < MAX_REPORT_DRAFTS and not self._over_budget(s) else "fallback"
+        retry = s.get("drafts", 0) < MAX_REPORT_DRAFTS and not self._over_budget(s) and not s.get("llm_down")
+        return "write" if retry else "fallback"
 
     def n_validate(self, s):
         res = policy.check(s["report"], Evidence(s["evidence"]), s["request_type"])
@@ -426,14 +443,27 @@ class Orchestrator:
         case_id = case_id or f"C{time.strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}"
         self.tracer = Tracer(self.out_dir / "traces" / f"{case_id}.jsonl") if self.save else NullTracer()
         t0 = time.time()
-        state = self.app.invoke({"request": request, "started": t0}, max_steps=40)
+        if hasattr(self.llm, "begin_run"):                        # a chain records which model answered this run
+            self.llm.begin_run()
+        has_deadline = hasattr(self.llm, "deadline")
+        if has_deadline:                                          # HTTP clients stop waiting at the deadline
+            self.llm.deadline = t0 + self.time_budget + LLM_GRACE
+        try:
+            state = self.app.invoke({"request": request, "started": t0}, max_steps=40)
+        finally:
+            if has_deadline:
+                self.llm.deadline = None
         seconds = round(time.time() - t0, 2)
         ev = Evidence(state.get("evidence", []))
         try:
             versions = self.tools.ctx.versions()
         except Exception as e:                                    # versions are a record, never a reason to fail a case
             versions = {"error": str(e)}
-        llm_meta = {"name": getattr(self.llm, "name", None), "model": getattr(self.llm, "model", None)}
+        llm_meta = {"name": getattr(self.llm, "name", None), "model": getattr(self.llm, "model", None),
+                    "lean": bool(getattr(self.llm, "lean", False)), "passage_chars": getattr(self.llm, "passage_chars", None)}
+        if hasattr(self.llm, "served"):                           # chain: who answered, who failed, who was not configured
+            llm_meta.update({"served": dict(self.llm.served), "fallbacks": list(self.llm.failures),
+                             "not_configured": dict(getattr(self.llm, "skipped", {}))})
         if state.get("path") in ("template", "refusal"):
             llm_meta = {"name": None, "model": None}
         hist = ev.output("entity_history") or {}

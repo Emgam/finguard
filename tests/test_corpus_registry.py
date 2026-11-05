@@ -1,6 +1,5 @@
 """The versioned corpus and the frozen question set (run in CI: needs only files kept in Git).
 The retrieval regression check runs when the index has been built locally (skipped otherwise)."""
-import json
 from unittest import SkipTest
 
 from finguard.rag import corpus

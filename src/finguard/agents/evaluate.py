@@ -63,6 +63,7 @@ def case_row(case_spec: dict, case: dict, mode: str) -> dict:
             "first_claims": first.get("claims"), "first_cited": first.get("cited"), "first_numbers": first.get("numbers"),
             "first_traceable": first.get("traceable"), "first_violations": first.get("violations"),
             "first_codes": " ".join(first.get("codes", [])) if first else None,
+            "served_by": "; ".join(f"{k} x{n}" for k, n in (case.get("llm") or {}).get("served", {}).items()) or None,
             "tool_calls": case.get("tool_calls"), "llm_calls": case.get("llm_calls"), "replans": case.get("replans"),
             "drafts": case.get("drafts"), "seconds": case.get("seconds"), "case_id": case.get("case_id")}
 
@@ -105,11 +106,44 @@ def exit_criteria(summary: dict) -> dict:
             "claims_cited_first_draft_ge_90": bool((s.get("claims_cited_first_draft") or 0) >= 0.90)}
 
 
-def run(orchestrated: Orchestrator, fallback: Orchestrator | None, cases: list[dict] | None = None,
-        out_dir: Path = config.TABLE_DIR, label: str = "", log=print) -> dict:
+def select_cases(spec: str | None, cases: list[dict] | None = None) -> list[dict]:
+    """``c01,c05,c13-c16`` -> those cases, in file order (all of them when ``spec`` is empty)."""
     cases = cases or C.load()
+    if not spec:
+        return cases
+    wanted = set()
+    for part in (p.strip().lower() for p in spec.split(",") if p.strip()):
+        if "-" in part:
+            lo, hi = (int(x.strip().lstrip("c")) for x in part.split("-", 1))
+            wanted |= {f"c{n:02d}" for n in range(lo, hi + 1)}
+        else:
+            wanted.add(f"c{int(part.lstrip('c')):02d}")
+    unknown = wanted - {c["id"] for c in cases}
+    if unknown:
+        raise ValueError(f"unknown case(s): {', '.join(sorted(unknown))}")
+    return [c for c in cases if c["id"] in wanted]
+
+
+def run(orchestrated: Orchestrator, fallback: Orchestrator | None, cases: list[dict] | None = None,
+        out_dir: Path = config.TABLE_DIR, label: str = "", log=print, resume: bool = False, pause: float = 0.0) -> dict:
+    """Run the cases on both paths and write the table and summary. ``resume`` keeps the rows already
+    in this LLM's table and runs only the missing cases (for free tiers with daily quotas); ``pause``
+    waits between cases (for per-minute limits)."""
+    cases = cases or C.load()
+    out_dir = Path(out_dir)
+    llm = getattr(orchestrated.llm, "name", None)
+    tag = f"_{llm}" if llm else ""
+    table = out_dir / f"phase4_agent_cases{tag}.csv"
+    modes = [m for m, o in (("orchestrated", orchestrated), ("fallback", fallback)) if o is not None]
+    previous = pd.read_csv(table) if resume and table.exists() else None
+    if previous is not None:
+        done = {c for c, g in previous.groupby("case") if set(modes) <= set(g["mode"])}
+        log(f"  resuming: {len(done)} case(s) already in {table.name}")
+        cases = [c for c in cases if c["id"] not in done]
     rows = []
-    for spec in cases:
+    for n, spec in enumerate(cases):
+        if n and pause:
+            time.sleep(pause)
         for mode, orch in (("orchestrated", orchestrated), ("fallback", fallback)):
             if orch is None:
                 continue
@@ -120,17 +154,17 @@ def run(orchestrated: Orchestrator, fallback: Orchestrator | None, cases: list[d
             log(f"  {spec['id']} {mode:<12} {r['request_type'] or '-':<14} {r['outcome']:<12} path={r['path']:<12} "
                 f"policy={r['policy_passed']} tools={r['tool_calls']} llm={r['llm_calls']} {r['seconds']}s{flag}")
     df = pd.DataFrame(rows)
+    if previous is not None:
+        df = pd.concat([previous, df], ignore_index=True).drop_duplicates(["case", "mode"], keep="last")
     summary = summarise(df)
-    llm = getattr(orchestrated.llm, "name", None)
     payload = {"run_at": time.strftime("%Y-%m-%d %H:%M:%S"), "label": label, "llm": llm,
+               "cases_done": int(df["case"].nunique()), "cases_total": len(C.load()),
                "llm_model": getattr(orchestrated.llm, "model", None), "graph": orchestrated.backend,
                "prompts": [p.tag for p in orchestrated.prompts.values()], "versions": orchestrated.tools.ctx.versions(),
                "summary": summary, "exit_criteria": exit_criteria(summary),
                "note": ("The scripted test model is deterministic and follows the fixed plans: these figures check the "
                         "pipeline, not an LLM." if llm == "scripted" else "")}
-    out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    tag = f"_{llm}" if llm else ""
-    df.to_csv(out_dir / f"phase4_agent_cases{tag}.csv", index=False)
+    df.to_csv(table, index=False)
     (out_dir / f"phase4_agent_summary{tag}.json").write_text(json.dumps(payload, indent=1, default=str), encoding="utf-8")
     return payload

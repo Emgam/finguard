@@ -1,0 +1,78 @@
+# FinGuard AI (Phase 5): one service, the API with the analyst dashboard at http://localhost:8000/
+#
+#   docker compose up --build -d          # build and start; first start loads data, model and index
+#   docker compose ps                     # STATUS shows "healthy" once ready
+#   docker compose logs -f api
+#   docker compose down
+#
+# Settings come from your shell or from a .env file next to this one (never commit keys):
+#   FINGUARD_WORLD=real|synthetic
+#   FINGUARD_LLM=auto (default: Groq openai/gpt-oss-120b, then Ollama qwen2.5:3b-instruct-q4_K_M offline)
+#                |groq|ollama|none|scripted|gemini|openrouter|openai|anthropic
+#   GROQ_API_KEY=gsk_...            free key from console.groq.com
+#   Ollama: installed on this computer it is reached at host.docker.internal:11434 (the default); or
+#   run it in Compose:  docker compose --profile ollama up -d
+#                       docker compose exec ollama ollama pull qwen2.5:3b-instruct-q4_K_M
+#                       and set OLLAMA_BASE_URL=http://ollama:11434
+#   FINGUARD_INSTALL_KB=true|false  sentence-transformers for a neural index (default true)
+services:
+  api:
+    build:
+      context: .
+      args:
+        INSTALL_KB: ${FINGUARD_INSTALL_KB:-true}
+    image: finguard-ai:${FINGUARD_IMAGE_TAG:-local}
+    ports:
+      - "${FINGUARD_PORT:-8000}:8000"
+    environment:
+      FINGUARD_WORLD: ${FINGUARD_WORLD:-real}
+      FINGUARD_LLM: ${FINGUARD_LLM:-auto}
+      FINGUARD_API_LLMS: ${FINGUARD_API_LLMS:-}
+      FINGUARD_LLM_MODEL: ${FINGUARD_LLM_MODEL:-}
+      FINGUARD_LLM_EFFORT: ${FINGUARD_LLM_EFFORT:-low}
+      FINGUARD_LLM_BASE_URL: ${FINGUARD_LLM_BASE_URL:-}
+      FINGUARD_LLM_API_KEY: ${FINGUARD_LLM_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:3b-instruct-q4_K_M}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      FINGUARD_OLLAMA_NUM_CTX: ${FINGUARD_OLLAMA_NUM_CTX:-8192}
+      FINGUARD_AGENT_LEAN: ${FINGUARD_AGENT_LEAN:-}
+      FINGUARD_PROMPT_PASSAGE_CHARS: ${FINGUARD_PROMPT_PASSAGE_CHARS:-}
+      FINGUARD_LLM_REASONING_EFFORT: ${FINGUARD_LLM_REASONING_EFFORT:-}
+      FINGUARD_EMBEDDER: ${FINGUARD_EMBEDDER:-}
+      FINGUARD_RERANKER: ${FINGUARD_RERANKER:-}
+      FINGUARD_API_TIME_BUDGET: ${FINGUARD_API_TIME_BUDGET:-40}
+      FINGUARD_API_MAX_CONCURRENT: ${FINGUARD_API_MAX_CONCURRENT:-2}
+      FINGUARD_REQUIRE_CHAMPION: ${FINGUARD_REQUIRE_CHAMPION:-0}
+      FINGUARD_CASE_DIR: ${FINGUARD_CASE_DIR:-/app/data/cases}
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+      - ./reports/tables:/app/reports/tables
+      - hf-cache:/home/finguard/.cache/huggingface
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  # optional: Ollama in a container (profile "ollama"), for a machine without Ollama installed
+  ollama:
+    image: ollama/ollama:${FINGUARD_OLLAMA_IMAGE_TAG:-latest}
+    profiles: ["ollama"]
+    environment:
+      OLLAMA_CONTEXT_LENGTH: ${FINGUARD_OLLAMA_NUM_CTX:-8192}
+    volumes:
+      - ollama-models:/root/.ollama
+    ports:
+      - "11434:11434"
+    restart: unless-stopped
+
+volumes:
+  hf-cache:
+  ollama-models:

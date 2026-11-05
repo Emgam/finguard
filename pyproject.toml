@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "finguard"
 version = "0.1.0"
-description = "FinGuard AI: decision-support prototype for card-not-present payment fraud review (Phase 1: data; Phase 2: models; Phase 3: knowledge base; Phase 4: agents)"
+description = "FinGuard AI: decision-support prototype for card-not-present payment fraud review (Phase 1: data; Phase 2: models; Phase 3: knowledge base; Phase 4: agents; Phase 5: API, dashboard, CI/CD)"
 requires-python = ">=3.10"
 dependencies = [
     "pandas>=2.2",
@@ -23,6 +23,7 @@ dependencies = [
 kb = ["sentence-transformers>=2.7"]          # dense embeddings and cross-encoder re-ranking (optional)
 mlops = ["mlflow>=2.12"]
 agents = ["langgraph>=0.2"]                  # the orchestration graph on LangGraph (a built-in engine runs without it)
+api = ["fastapi>=0.110", "uvicorn>=0.29", "httpx>=0.27"]   # Phase 5 API and dashboard (httpx: the test client)
 dev = ["jupyter>=1.0", "nbconvert>=7", "pytest>=8", "ruff>=0.5", "reportlab>=4.0"]   # reportlab: PDF parser tests
 
 [tool.setuptools.packages.find]
@@ -30,6 +31,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "finguard.agents" = ["prompts/*.md", "prompts/*.json"]
+"finguard.api" = ["static/*.html"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -37,3 +39,9 @@ pythonpath = ["src"]
 
 [tool.ruff]
 line-length = 130
+
+[tool.ruff.lint]
+# errors, not style: syntax, undefined names, unused imports and variables, invalid comparisons.
+# E702 (several statements on one line) is the house style of the argparse blocks.
+select = ["E4", "E7", "E9", "F"]
+ignore = ["E702", "E741"]

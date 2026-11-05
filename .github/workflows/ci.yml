@@ -1,18 +1,77 @@
-# FinGuard CI: runs on every push and pull request.
-# Tests that need the Kaggle data, the trained artifacts or the downloaded corpus are skipped
-# automatically; the synthetic tests cover leakage rules, features, novelty flags, metrics,
-# reasons, the entity store and the whole retrieval pipeline.
+# FinGuard CI (Project Report v3.0, section 9): runs on every pull request and push.
+#
+# The Kaggle data, the trained model files and the downloaded documents are not in Git (licence
+# and size), so the gates that need them skip here and run locally with `make release-check`.
+# What runs here:
+#   lint        ruff (errors: syntax, undefined names, unused imports)
+#   tests       compile, prompt lock, unit tests on synthetic data: leakage rules, features, novelty
+#               flags, metrics, reasons, entity store, retrieval pipeline, agents and evidence policy,
+#               the API contract and a live alert-to-report run
+#   container   deployment gate: build the image, start it with the synthetic demo world, wait for
+#               the health check, run the alert-to-report demo (must pass in under 60 s)
 name: ci
-on: [push, pull_request]
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - run: pip install "ruff>=0.5"
+      - run: ruff check src tests tools
+
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
       - run: python -m pip install --upgrade pip
-      - run: pip install -e ".[dev]"
+      - run: pip install -e ".[dev,api]"
       - run: python -m compileall -q src tests tools
+      - name: Prompt versions match the lock
+        run: python -m finguard.agents prompts
       - run: python -m pytest -q
+
+  container:
+    needs: [lint, tests]
+    runs-on: ubuntu-latest
+    env:
+      FINGUARD_WORLD: synthetic
+      FINGUARD_LLM: scripted
+      FINGUARD_INSTALL_KB: "false"
+      FINGUARD_CASE_DIR: /tmp/finguard-cases
+      FINGUARD_IMAGE_TAG: ci
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the image
+        run: docker compose build
+      - name: Start and wait for the health check
+        run: docker compose up -d --wait --wait-timeout 300
+      - name: Alert-to-report demo (deployment gate, under 60 s)
+        run: |
+          docker compose exec -T api python -m finguard.api demo --llm scripted --max-seconds 60 --out /tmp/phase5_demo_ci.json
+          docker compose cp api:/tmp/phase5_demo_ci.json phase5_demo_ci.json
+      - name: Container logs
+        if: always()
+        run: docker compose logs --no-color api | tail -n 200
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase5-demo
+          path: phase5_demo_ci.json
+          if-no-files-found: ignore
+      - if: always()
+        run: docker compose down -v

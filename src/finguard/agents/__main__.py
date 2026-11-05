@@ -1,16 +1,20 @@
 """FinGuard agents from the command line (the Phase 4 deliverable: investigations producing reports).
 
-    python -m finguard.agents investigate "Investigate alert TX-3554656" [--llm anthropic|openai|scripted|none]
+    python -m finguard.agents investigate "Investigate alert TX-3554656" [--llm auto|groq|ollama|scripted|none]
     python -m finguard.agents investigate "What does Visa dispute condition 10.4 cover?"
     python -m finguard.agents investigate "..." --fallback          # the fixed fallback path
     python -m finguard.agents evaluate [--llm ...]                  # the 20 scripted cases, both paths
+    python -m finguard.agents evaluate --llm groq --cases c01-c10   # part of them (free-tier quotas) ...
+    python -m finguard.agents evaluate --llm groq --resume          # ... and the rest later, one table
     python -m finguard.agents decide CASE_ID --decision false_positive --analyst "L1 analyst" [--note "..."]
     python -m finguard.agents show CASE_ID                          # print a saved report
     python -m finguard.agents prompts [--lock]                      # prompt versions and lock status
     python -m finguard.agents cases --select                        # re-select the 20 scripted cases
 
-The LLM comes from --llm or FINGUARD_LLM (default: none, the template path); see
-``finguard.agents.llm`` for keys and models. Reports, traces and the case database are written to
+The LLM comes from --llm or FINGUARD_LLM. The default, auto, is Groq openai/gpt-oss-120b (GROQ_API_KEY)
+with Ollama qwen2.5:3b-instruct-q4_K_M on this computer as the offline fallback, and the template
+report when neither answers; see ``finguard.agents.llm``. Scores and SHAP reasons are always computed
+in Python by the tools, never by an LLM. Reports, traces and the case database are written to
 ``data/cases/`` (or FINGUARD_CASE_DIR).
 """
 from __future__ import annotations
@@ -50,9 +54,10 @@ def cmd_investigate(a) -> None:
 
 
 def cmd_evaluate(a) -> None:
-    from finguard.agents.evaluate import run
+    from finguard.agents.evaluate import run, select_cases
+    cases = select_cases(a.cases)
     orch, fb = _orchestrators(a, both=not a.no_fallback)
-    res = run(orch, fb, label=a.note or "")
+    res = run(orch, fb, cases=cases, label=a.note or "", resume=a.resume, pause=a.pause)
     print(json.dumps({"summary": res["summary"], "exit_criteria": res["exit_criteria"], "note": res["note"]}, indent=1, default=str))
 
 
@@ -92,7 +97,11 @@ def main() -> None:
         else:
             s.add_argument("--no-fallback", action="store_true", help="skip the fallback-path comparison")
             s.add_argument("--note", default="")
-        s.add_argument("--llm", default=None, help="anthropic, openai, scripted or none (default: FINGUARD_LLM or none)")
+            s.add_argument("--cases", default=None, help="subset, e.g. c01,c05,c13-c16 (default: all 20)")
+            s.add_argument("--resume", action="store_true", help="keep this LLM's earlier rows; run only missing cases")
+            s.add_argument("--pause", type=float, default=0.0, help="seconds to wait between cases (rate limits)")
+        s.add_argument("--llm", default=None, help="auto (Groq, then Ollama offline), groq, ollama, none, scripted, gemini, "
+                                                  "openrouter, openai or anthropic (default: FINGUARD_LLM or auto)")
         s.add_argument("--graph", default=None, help="langgraph, builtin or auto (default: FINGUARD_GRAPH or auto)")
         s.set_defaults(fn=fn)
     d = sub.add_parser("decide", help="record an analyst decision (people only)")

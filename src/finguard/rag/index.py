@@ -128,7 +128,7 @@ class SentenceTransformerEmbedder:
 
 
 def make_embedder(name: str | None = None):
-    name = name or os.environ.get("FINGUARD_EMBEDDER", "auto")
+    name = name or os.environ.get("FINGUARD_EMBEDDER") or "auto"            # empty = unset (Docker Compose)
     if name == "lsa":
         return LsaEmbedder()
     try:

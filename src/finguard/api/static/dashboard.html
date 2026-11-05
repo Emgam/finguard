@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FinGuard AI</title>
+<style>
+:root {
+  --bg: #f5f6f8; --panel: #ffffff; --ink: #1a1e23; --ink2: #434b55; --muted: #6a7480; --line: #e2e5e9;
+  --accent: #0d5c78; --accent-ink: #ffffff; --accent-soft: #e4f1f6;
+  --high: #a8261b; --high-bg: #fbe9e7; --med: #8a5300; --med-bg: #fcf1dc; --low: #4b5561; --low-bg: #eceff2;
+  --ok: #17734a; --ok-bg: #e3f4ea; --err: #a8261b; --err-bg: #fbe9e7; --warn-bg: #fff6e0;
+  --code: #f0f2f4; --bar: #0d5c78; --bar-anon: #a3acb7; --shadow: 0 1px 2px rgba(16,24,40,.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1115; --panel: #151a20; --ink: #e6e9ed; --ink2: #b9c1ca; --muted: #8a949f; --line: #262e37;
+    --accent: #5db7d5; --accent-ink: #081014; --accent-soft: #14303b;
+    --high: #ff8f80; --high-bg: #3b1713; --med: #f3b55a; --med-bg: #33250d; --low: #b9c1ca; --low-bg: #222932;
+    --ok: #6fd3a0; --ok-bg: #11301f; --err: #ff8f80; --err-bg: #3b1713; --warn-bg: #2f2610;
+    --code: #1c232b; --bar: #5db7d5; --bar-anon: #5a6571; --shadow: none;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body { font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+a { color: var(--accent); }
+button, input, select, textarea { font: inherit; color: inherit; }
+.num { font-variant-numeric: tabular-nums; }
+header.top { background: var(--panel); border-bottom: 1px solid var(--line); }
+.wrap { max-width: 1320px; margin: 0 auto; padding: 0 20px; }
+.bar { display: flex; align-items: center; gap: 16px; min-height: 58px; flex-wrap: wrap; }
+.brand { display: flex; align-items: baseline; gap: 10px; margin-right: auto; }
+.brand b { font-size: 17px; letter-spacing: .2px; }
+.brand span { color: var(--muted); font-size: 13px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12.5px;
+        border: 1px solid var(--line); background: var(--panel); white-space: nowrap; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.pill.ready .dot { background: var(--ok); } .pill.starting .dot { background: var(--med); } .pill.error .dot { background: var(--err); }
+details.versions { position: relative; }
+details.versions summary { list-style: none; cursor: pointer; } details.versions summary::-webkit-details-marker { display: none; }
+details.versions .pop { position: absolute; right: 0; top: 34px; z-index: 20; width: min(440px, 92vw); background: var(--panel);
+        border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 3px 12px; font-size: 13px; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; overflow-wrap: anywhere; }
+label.inline { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
+select, input[type=text], input[type=number], textarea { background: var(--panel); border: 1px solid var(--line); border-radius: 7px;
+        padding: 6px 9px; min-height: 32px; }
+textarea { width: 100%; resize: vertical; }
+select:focus, input:focus, textarea:focus, button:focus-visible, tr:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.notice { font-size: 13px; padding: 8px 0; color: var(--ink2); }
+.notice b { color: var(--ink); }
+.banner { background: var(--warn-bg); border-bottom: 1px solid var(--line); font-size: 13px; padding: 7px 0; }
+nav.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); margin-top: 6px; overflow-x: auto; }
+nav.tabs a { padding: 10px 14px; text-decoration: none; color: var(--ink2); border-bottom: 2px solid transparent; white-space: nowrap; }
+nav.tabs a[aria-current=page] { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+main { padding: 18px 0 60px; }
+.view[hidden] { display: none; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow); }
+.card h3 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); font-weight: 600; }
+.card + .card { margin-top: 14px; }
+.filters { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin-bottom: 12px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--panel); }
+.seg button { border: 0; background: transparent; padding: 6px 12px; cursor: pointer; color: var(--ink2); }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed=true] { background: var(--accent); color: var(--accent-ink); }
+.btn { border: 1px solid var(--line); background: var(--panel); border-radius: 7px; padding: 6px 12px; cursor: pointer; min-height: 32px; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.summary { color: var(--ink2); margin: 0 0 8px; font-size: 13px; }
+.tablewrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; background: var(--panel); position: sticky; top: 0; }
+td.r, th.r { text-align: right; }
+tbody tr { cursor: pointer; } tbody tr:hover { background: var(--accent-soft); }
+tbody tr:last-child td { border-bottom: 0; }
+.band { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.band.High { color: var(--high); background: var(--high-bg); } .band.Medium { color: var(--med); background: var(--med-bg); }
+.band.Low { color: var(--low); background: var(--low-bg); }
+.tag { display: inline-block; padding: 0 7px; border-radius: 5px; font-size: 11.5px; border: 1px solid var(--line); color: var(--ink2); }
+.tag.ok { color: var(--ok); background: var(--ok-bg); border-color: transparent; }
+.tag.anon { color: var(--muted); }
+.pager { display: flex; gap: 8px; align-items: center; justify-content: flex-end; margin-top: 10px; color: var(--muted); font-size: 13px; }
+.grid { display: grid; grid-template-columns: minmax(320px, 5fr) minmax(360px, 7fr); gap: 16px; align-items: start; }
+@media (max-width: 960px) { .grid { grid-template-columns: 1fr; } }
+.casehead { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.casehead h2 { margin: 0; font-size: 20px; }
+.score { display: flex; align-items: baseline; gap: 8px; }
+.score b { font-size: 34px; line-height: 1; } .score span { color: var(--muted); }
+.meta { color: var(--muted); font-size: 12.5px; }
+.reason { padding: 8px 0; border-top: 1px solid var(--line); } .reason:first-of-type { border-top: 0; padding-top: 0; }
+.reason .head { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+.reason .lbl { font-weight: 600; } .reason .head > span:last-child { white-space: nowrap; }
+.track { height: 6px; background: var(--low-bg); border-radius: 4px; margin: 6px 0 4px; overflow: hidden; }
+.fill { height: 100%; background: var(--bar); border-radius: 4px; } .fill.anon { background: var(--bar-anon); }
+.reason .txt { color: var(--ink2); font-size: 13px; }
+ul.plain { list-style: none; padding: 0; margin: 0; } ul.plain li { padding: 3px 0; }
+.flag { display: flex; gap: 8px; } .flag .st { min-width: 34px; font-weight: 600; } .flag .st.on { color: var(--high); } .flag .st.off { color: var(--muted); }
+.runrow { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.chip { border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; font-size: 12.5px; background: var(--panel); }
+.chip.ok { color: var(--ok); background: var(--ok-bg); border-color: transparent; }
+.chip.bad { color: var(--err); background: var(--err-bg); border-color: transparent; }
+.err { background: var(--err-bg); color: var(--err); border-radius: 8px; padding: 8px 12px; margin: 8px 0; }
+.empty { color: var(--muted); padding: 26px 8px; text-align: center; }
+article.report { font-size: 14px; line-height: 1.55; overflow-wrap: anywhere; }
+article.report h2 { font-size: 18px; margin: 4px 0 8px; } article.report h3 { font-size: 15px; margin: 18px 0 6px; text-transform: none; letter-spacing: 0; color: var(--ink); }
+article.report blockquote { margin: 10px 0; padding: 6px 12px; border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 0 6px 6px 0; }
+article.report blockquote p { margin: 4px 0; }
+article.report code { background: var(--code); padding: 0 4px; border-radius: 4px; font-size: 12.5px; }
+article.report ul, article.report ol { padding-left: 22px; } article.report li { margin: 3px 0; }
+.thread { display: flex; flex-direction: column; gap: 12px; margin: 12px 0; }
+.msg.user { align-self: flex-end; max-width: 80%; background: var(--accent); color: var(--accent-ink); padding: 8px 12px; border-radius: 12px 12px 2px 12px; }
+.msg.bot { max-width: 100%; }
+.composer { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; }
+.split { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); gap: 16px; align-items: start; }
+@media (max-width: 960px) { .split { grid-template-columns: 1fr; } }
+.decision { display: grid; gap: 8px; grid-template-columns: 1fr 1fr; margin-top: 8px; }
+.decision textarea { grid-column: 1 / -1; }
+.muted { color: var(--muted); }
+.spin { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: s 0.8s linear infinite; vertical-align: -2px; }
+@keyframes s { to { transform: rotate(360deg); } }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap bar">
+    <div class="brand"><b>FinGuard AI</b><span>Decision support for card-not-present fraud review</span></div>
+    <label class="inline" for="llm">LLM <select id="llm" aria-label="LLM used for investigations and questions"></select></label>
+    <details class="versions" id="versions"><summary class="pill" id="status"><span class="dot"></span><span id="statusText">Connecting…</span></summary>
+      <div class="pop"><dl class="kv" id="versionList"></dl></div></details>
+  </div>
+</header>
+<div class="banner" id="synthetic" hidden><div class="wrap"><b>Synthetic demo world.</b> Invented transactions, not IEEE-CIS data; scores and reasons are made up. The knowledge base holds only the FinGuard project documents.</div></div>
+<div class="wrap">
+  <div class="notice"><b>Flagged for review, not a finding of fraud.</b> The analyst decides. FinGuard never blocks a payment, judges a person or files a report.</div>
+  <nav class="tabs" aria-label="Views">
+    <a href="#alerts" data-view="alerts">Alert queue</a><a href="#case" data-view="case">Case</a>
+    <a href="#assistant" data-view="assistant">Assistant</a><a href="#cases" data-view="cases">Cases</a>
+  </nav>
+  <main>
+    <!-- alert queue -->
+    <section class="view" id="view-alerts" aria-labelledby="h-alerts">
+      <h2 class="sr" id="h-alerts">Alert queue</h2>
+      <div class="filters">
+        <div class="seg" role="group" aria-label="Band" id="bandSeg">
+          <button data-band="alerts" aria-pressed="true">Alerts</button><button data-band="High" aria-pressed="false">High</button>
+          <button data-band="Medium" aria-pressed="false">Medium</button><button data-band="all" aria-pressed="false">All scored</button>
+        </div>
+        <label class="inline">Case <select id="fStatus"><option value="any">Any</option><option value="open">No case yet</option><option value="draft">Draft</option><option value="decided">Decided</option></select></label>
+        <label class="inline">Days <input id="fFrom" type="number" min="0" max="400" style="width:76px" placeholder="from"> – <input id="fTo" type="number" min="0" max="400" style="width:76px" placeholder="to"></label>
+        <label class="inline">ID <input id="fQ" type="text" inputmode="numeric" maxlength="7" style="width:100px" placeholder="TransactionID"></label>
+        <label class="inline">Sort <select id="fSort"><option value="score">Score</option><option value="time">Time</option></select></label>
+        <button class="btn" id="fApply">Apply</button>
+      </div>
+      <p class="summary num" id="alertSummary"></p>
+      <div class="tablewrap"><table aria-describedby="alertSummary">
+        <thead><tr><th>Transaction</th><th class="r">Day</th><th class="r">Hour</th><th class="r">Amount</th><th>Product</th><th>Card</th><th class="r">Score</th><th>Band</th><th>Case</th></tr></thead>
+        <tbody id="alertRows"></tbody></table></div>
+      <div class="pager"><span id="pageInfo" class="num"></span><button class="btn" id="prev">Previous</button><button class="btn" id="next">Next</button></div>
+    </section>
+
+    <!-- case view -->
+    <section class="view" id="view-case" hidden>
+      <div id="caseEmpty" class="card">
+        <h3>Open a case</h3>
+        <p class="muted">Open an alert from the queue, or enter a TransactionID.</p>
+        <div class="runrow"><input id="openTx" type="text" inputmode="numeric" maxlength="7" placeholder="e.g. 3554656" aria-label="TransactionID"><button class="btn primary" id="openTxBtn">Open</button></div>
+      </div>
+      <div id="caseBody" hidden>
+        <div class="casehead"><h2 id="caseTitle"></h2><span id="caseBand"></span><span class="meta" id="caseMeta"></span></div>
+        <div class="grid">
+          <div>
+            <div class="card"><h3>Score</h3><div id="scoreBox"></div></div>
+            <div class="card"><h3>Reasons <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:400">· explain the score, not the cause</span></h3><div id="reasons"></div></div>
+            <div class="card"><h3>Novelty flags <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:400">· shown, not part of the score</span></h3><div id="flags"></div></div>
+            <div class="card"><h3>Proxy entity <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:400">· a heuristic, never a customer</span></h3><div id="entity"></div></div>
+            <div class="card"><h3>Earlier cases</h3><div id="earlier"></div></div>
+          </div>
+          <div>
+            <div class="card">
+              <h3>Investigation</h3>
+              <label for="request" class="sr">Request</label>
+              <textarea id="request" rows="2"></textarea>
+              <div class="runrow"><button class="btn primary" id="runBtn">Run investigation</button><span id="runState" class="muted" aria-live="polite"></span></div>
+              <div id="runError"></div>
+            </div>
+            <div class="card" id="reportCard" hidden><div id="reportPanel"></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- assistant -->
+    <section class="view" id="view-assistant" hidden>
+      <div class="card">
+        <h3>Assistant</h3>
+        <p class="muted" style="margin:0">Ask about a transaction (give its TransactionID) or about the guidance in the knowledge base. Each question is answered on its own, with citations. Requests to block a card, judge a person or file a report are declined.</p>
+        <div class="chips" id="suggest"></div>
+        <div class="thread" id="thread" aria-live="polite"></div>
+        <div class="composer">
+          <div><label for="ask" class="sr">Question</label><textarea id="ask" rows="2" placeholder="Ask a question…"></textarea>
+            <label class="inline" id="aboutWrap" hidden><input type="checkbox" id="about"> <span id="aboutText"></span></label></div>
+          <button class="btn primary" id="askBtn">Send</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- cases -->
+    <section class="view" id="view-cases" hidden>
+      <div class="split">
+        <div>
+          <p class="summary num" id="casesSummary"></p>
+          <div class="tablewrap"><table>
+            <thead><tr><th>Case</th><th>Created</th><th>Transaction</th><th>Type</th><th>Outcome</th><th>Path</th><th>Status</th></tr></thead>
+            <tbody id="caseRows"></tbody></table></div>
+          <div class="pager"><span id="casesPage" class="num"></span><button class="btn" id="cPrev">Previous</button><button class="btn" id="cNext">Next</button></div>
+        </div>
+        <div class="card" id="casePanelCard"><div id="casePanel"><p class="empty">Select a case to read its report.</p></div></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const S = { health: null, llm: null, alerts: { band: "alerts", status: "any", day_from: "", day_to: "", q: "", sort: "score", offset: 0, limit: 50 },
+            tx: null, txData: null, cases: { offset: 0, limit: 25 }, running: false };
+const LLM_LABEL = { auto: "Auto: Groq, then Ollama offline", groq: "Groq gpt-oss-120b", ollama: "Ollama qwen2.5 3B (offline)",
+  none: "None: template report", scripted: "Scripted test model (no LLM)", gemini: "Google Gemini (free tier)", openrouter: "OpenRouter",
+  openai: "OpenAI-compatible", anthropic: "Anthropic (Claude)" };
+const DECISION_LABEL = { confirmed_fraud: "Confirmed fraud", false_positive: "False positive", inconclusive: "Inconclusive" };
+
+function esc(s) { return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function fmtNum(v, d = 2) { return v == null ? "n/a" : Number(v).toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d }); }
+function fmtAmt(v) { return v == null ? "n/a" : Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }); }
+function fmtInt(v) { return v == null ? "n/a" : Number(v).toLocaleString(); }
+function band(b) { return b ? `<span class="band ${esc(b)}">${esc(b)}</span>` : ""; }
+
+async function api(path, opts = {}) {
+  const init = { method: opts.method || "GET", headers: {} };
+  if (opts.body) { init.headers["content-type"] = "application/json"; init.body = JSON.stringify(opts.body); }
+  const res = await fetch(path, init);
+  const ct = res.headers.get("content-type") || "";
+  const data = ct.includes("json") ? await res.json() : await res.text();
+  if (!res.ok) { const e = new Error((data && data.message) || res.statusText); e.status = res.status; e.data = data; throw e; }
+  return data;
+}
+
+/* ---------- minimal Markdown for FinGuard reports (input is escaped first) ---------- */
+function inline(s) {
+  return s.split(/(`[^`]+`)/g).map((p) => {
+    if (p.length > 1 && p.startsWith("`") && p.endsWith("`")) return `<code>${esc(p.slice(1, -1))}</code>`;
+    let t = esc(p);
+    t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    t = t.replace(/(^|[^*\w])\*([^*\s][^*]*?)\*(?=[^*\w]|$)/g, "$1<em>$2</em>");
+    t = t.replace(/(https?:\/\/[^\s<]*[^\s<.,;:)\]])/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+    return t;
+  }).join("");
+}
+function buildList(items, k, ind) {
+  const ord = items[k].ord; let html = ord ? "<ol>" : "<ul>";
+  while (k < items.length && items[k].ind >= ind) {
+    if (items[k].ind > ind) {
+      const [sub, nk] = buildList(items, k, items[k].ind);
+      html = html.endsWith("</li>") ? html.slice(0, -5) + sub + "</li>" : html + "<li>" + sub + "</li>"; k = nk; continue;
+    }
+    html += "<li>" + inline(items[k].text) + "</li>"; k++;
+  }
+  return [html + (ord ? "</ol>" : "</ul>"), k];
+}
+const LI = /^(\s*)([-*]|\d+\.)\s+(.*)$/;
+function md(src) {
+  const lines = String(src || "").replace(/\r/g, "").split("\n"); let html = "", para = [], i = 0;
+  const flush = () => { if (para.length) { html += "<p>" + inline(para.join(" ")) + "</p>"; para = []; } };
+  while (i < lines.length) {
+    const line = lines[i]; let m;
+    if (!line.trim()) { flush(); i++; continue; }
+    if ((m = line.match(/^(#{1,4})\s+(.*)$/))) { flush(); const l = Math.min(m[1].length + 1, 5); html += `<h${l}>${inline(m[2])}</h${l}>`; i++; continue; }
+    if (line.startsWith(">")) { flush(); const q = []; while (i < lines.length && lines[i].startsWith(">")) { q.push(lines[i].replace(/^>\s?/, "")); i++; } html += "<blockquote>" + md(q.join("\n")) + "</blockquote>"; continue; }
+    if (LI.test(line)) {
+      flush(); const items = [];
+      while (i < lines.length && (LI.test(lines[i]) || (items.length && /^\s{2,}\S/.test(lines[i])))) {
+        const mm = lines[i].match(LI);
+        if (mm) items.push({ ind: mm[1].length, ord: /\d/.test(mm[2]), text: mm[3] }); else items[items.length - 1].text += " " + lines[i].trim();
+        i++;
+      }
+      html += buildList(items, 0, items[0].ind)[0]; continue;
+    }
+    para.push(line.trim()); i++;
+  }
+  flush(); return html;
+}
+
+/* ---------- health, versions, LLM ---------- */
+async function loadHealth() {
+  let h;
+  try { h = await api("/api/health"); } catch (e) { h = e.data || { status: "unreachable", error: e.message }; }
+  S.health = h;
+  const st = $("status"); st.className = "pill " + (h.ready ? "ready" : h.status === "error" ? "error" : "starting");
+  $("statusText").textContent = h.ready ? `Ready · ${h.world}` : h.status === "error" ? "Failed to load" : h.status === "unreachable" ? "API unreachable" : `Loading… ${Math.round(h.uptime_seconds || 0)} s`;
+  $("synthetic").hidden = !h.synthetic;
+  const v = h.versions || {}; const c = h.champion || {};
+  const rows = [["World", h.world], ["Model", v.model_version], ["Champion", c.model_id ? `${c.model_id} (${c.matches_served_model ? "served" : "not the served model"})` : (c.note || "n/a")],
+    ["Index", v.index_version], ["Embedder", v.embedder], ["Re-ranker", v.reranker], ["Retrieval", v.retrieval_variant], ["Indicator map", v.indicator_map],
+    ["Prompts", (v.prompts || []).join(", ")], ["Prompt lock", h.prompt_lock === "ok" ? "ok" : (h.prompt_lock || []).join("; ")],
+    ["Time budget", h.time_budget_seconds ? `${h.time_budget_seconds} s per investigation` : null], ["Period", h.period], ["API", v.api]];
+  const ls = (h.llm && h.llm.status) || {};
+  if (ls.groq) rows.splice(1, 0, ["Groq", `${ls.groq.model}: ${ls.groq.status}`]);
+  if (ls.ollama) rows.splice(2, 0, ["Ollama", `${ls.ollama.model}: ${ls.ollama.status}`]);
+  if (h.error) rows.unshift(["Error", h.error]);
+  $("versionList").innerHTML = rows.filter((r) => r[1] != null && r[1] !== "").map((r) => `<dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd>`).join("");
+  const sel = $("llm"); const avail = (h.llm && h.llm.available) || [];
+  if (avail.length && sel.options.length !== avail.length) {
+    sel.innerHTML = avail.map((n) => `<option value="${esc(n)}">${esc(LLM_LABEL[n] || n)}</option>`).join("");
+    S.llm = S.llm && avail.includes(S.llm) ? S.llm : h.llm.default; sel.value = S.llm;
+  }
+  return h;
+}
+$("llm").addEventListener("change", (e) => { S.llm = e.target.value; });
+
+/* ---------- alert queue ---------- */
+async function loadAlerts() {
+  const a = S.alerts; const tbody = $("alertRows");
+  if (!S.health || !S.health.ready) { tbody.innerHTML = `<tr><td colspan="9" class="empty"><span class="spin"></span> Loading the data, model and knowledge base…</td></tr>`; return; }
+  const q = new URLSearchParams({ band: a.band, status: a.status, sort: a.sort, limit: a.limit, offset: a.offset });
+  if (a.day_from !== "") q.set("day_from", a.day_from); if (a.day_to !== "") q.set("day_to", a.day_to); if (a.q) q.set("q", a.q);
+  let d;
+  try { d = await api("/api/alerts?" + q); } catch (e) { tbody.innerHTML = `<tr><td colspan="9"><div class="err">${esc(e.message)}</div></td></tr>`; return; }
+  const bc = d.band_counts;
+  $("alertSummary").textContent = `${fmtInt(d.total)} transaction(s) shown · ${d.period} · bands: High ${fmtInt(bc.High)}, Medium ${fmtInt(bc.Medium)}, Low ${fmtInt(bc.Low)}`;
+  tbody.innerHTML = d.items.length ? d.items.map((r) => {
+    const c = r.case; const cs = !c ? '<span class="muted">none</span>' : c.decision ? `<span class="tag ok">${esc(DECISION_LABEL[c.decision] || c.decision)}</span>` : `<span class="tag">${esc(c.status)}</span>`;
+    return `<tr tabindex="0" data-tx="${r.transaction_id}"><td class="num"><b>${r.transaction_id}</b></td><td class="r num">${r.relative_day}</td><td class="r num">${r.relative_hour ?? ""}</td>
+      <td class="r num">${fmtAmt(r.amount)}</td><td>${esc(r.product_code)}</td><td>${esc([r.card_network, r.card_type].filter(Boolean).join(" "))}</td>
+      <td class="r num"><b>${fmtNum(r.score, 1)}</b></td><td>${band(r.band)}</td><td>${cs}</td></tr>`;
+  }).join("") : `<tr><td colspan="9" class="empty">No transaction matches these filters.</td></tr>`;
+  const page = Math.floor(a.offset / a.limit) + 1, pages = Math.max(1, Math.ceil(d.total / a.limit));
+  $("pageInfo").textContent = `Page ${page} of ${fmtInt(pages)}`; $("prev").disabled = a.offset === 0; $("next").disabled = a.offset + a.limit >= d.total;
+}
+$("alertRows").addEventListener("click", (e) => { const tr = e.target.closest("tr[data-tx]"); if (tr) location.hash = "#case/" + tr.dataset.tx; });
+$("alertRows").addEventListener("keydown", (e) => { const tr = e.target.closest("tr[data-tx]"); if (tr && e.key === "Enter") location.hash = "#case/" + tr.dataset.tx; });
+$("bandSeg").addEventListener("click", (e) => { const b = e.target.closest("button[data-band]"); if (!b) return;
+  [...$("bandSeg").children].forEach((x) => x.setAttribute("aria-pressed", String(x === b))); S.alerts.band = b.dataset.band; S.alerts.offset = 0; loadAlerts(); });
+$("fApply").addEventListener("click", () => { Object.assign(S.alerts, { status: $("fStatus").value, day_from: $("fFrom").value, day_to: $("fTo").value, q: $("fQ").value.trim(), sort: $("fSort").value, offset: 0 }); loadAlerts(); });
+$("fQ").addEventListener("keydown", (e) => { if (e.key === "Enter") $("fApply").click(); });
+$("prev").addEventListener("click", () => { S.alerts.offset = Math.max(0, S.alerts.offset - S.alerts.limit); loadAlerts(); });
+$("next").addEventListener("click", () => { S.alerts.offset += S.alerts.limit; loadAlerts(); });
+
+/* ---------- case view ---------- */
+async function openCase(tx) {
+  $("caseEmpty").hidden = true; $("caseBody").hidden = false; $("reportCard").hidden = true; $("runError").innerHTML = ""; $("runState").textContent = "";
+  $("caseTitle").textContent = `Transaction ${tx}`; $("caseBand").innerHTML = ""; $("caseMeta").textContent = "";
+  ["scoreBox", "reasons", "flags", "entity", "earlier"].forEach((id) => { $(id).innerHTML = '<span class="spin"></span>'; });
+  if (S.tx !== tx) $("request").value = `Investigate alert TX-${tx}.`;
+  S.tx = tx; updateAbout();
+  let d;
+  try { d = await api(`/api/transactions/${tx}`); } catch (e) {
+    ["scoreBox", "reasons", "flags", "entity", "earlier"].forEach((id) => { $(id).innerHTML = ""; });
+    $("scoreBox").innerHTML = `<div class="err">${esc(e.message)}</div>`; return;
+  }
+  S.txData = d; const s = d.fraud_score, t = s.transaction || {};
+  $("caseBand").innerHTML = band(s.band);
+  $("caseMeta").textContent = `${s.period} period · relative day ${s.relative_day} · hour ${t.relative_hour ?? "n/a"}`;
+  $("scoreBox").innerHTML = `<div class="score num"><b>${fmtNum(s.score, 1)}</b><span>/ 100 · displayed probability ${esc(s.probability_displayed)}</span></div>
+    <p class="meta" style="margin:6px 0 10px">Model ${esc(s.model_version)} · ${esc(s.band_definition || "")}</p>
+    <dl class="kv"><dt>Amount</dt><dd class="num">${fmtAmt(t.amount)}</dd><dt>Product code</dt><dd>${esc(t.product_code)}</dd>
+    <dt>Card</dt><dd>${esc([t.card_network, t.card_type].filter(Boolean).join(" ") || "n/a")}</dd><dt>Identity record</dt><dd>${t.has_identity_record == null ? "n/a" : t.has_identity_record ? "yes" : "no"}</dd></dl>`;
+  const rs = d.explain_transaction.reasons || []; const max = Math.max(...rs.map((r) => r.contribution_log_odds), 0.0001);
+  $("reasons").innerHTML = rs.length ? rs.map((r, i) => `<div class="reason"><div class="head"><span class="lbl">${i + 1}. ${esc(r.label)}</span>
+      <span>${r.anonymized ? '<span class="tag anon">anonymized, not checkable</span>' : '<span class="tag ok">checkable</span>'} <span class="num muted">+${fmtNum(r.contribution_log_odds)}</span></span></div>
+      <div class="track" aria-hidden="true"><div class="fill${r.anonymized ? " anon" : ""}" style="width:${(100 * r.contribution_log_odds / max).toFixed(1)}%"></div></div>
+      <div class="txt">${esc(r.text)}</div></div>`).join("") + '<p class="meta" style="margin:8px 0 0">Bar length: contribution in log-odds (TreeSHAP), relative to the largest.</p>'
+    : '<p class="muted">No reason pushed the score up.</p>';
+  $("flags").innerHTML = '<ul class="plain">' + (s.novelty_flags || []).map((f) => `<li class="flag"><span class="st ${f.on ? "on" : "off"}">${f.on == null ? "n/a" : f.on ? "On" : "Off"}</span><span>${esc(f.rule)}</span></li>`).join("") + "</ul>";
+  const h = d.entity_history;
+  $("entity").innerHTML = !h.available ? `<p class="muted">No proxy entity: ${esc(h.reason)}</p>` : !h.earlier_transactions
+    ? `<p>First transaction of this proxy entity in the data: no earlier history.</p><p class="meta">Key ${esc(h.entity_key)}</p>`
+    : `<dl class="kv"><dt>Earlier transactions</dt><dd class="num">${fmtInt(h.earlier_transactions)}</dd><dt>In the previous 24 h</dt><dd class="num">${fmtInt(h.earlier_in_24h)}</dd>
+       <dt>In the previous ${h.window_days} days</dt><dd class="num">${fmtInt(h["earlier_in_" + h.window_days + "d"])}</dd>
+       <dt>Amount vs earlier mean</dt><dd class="num">${h.amount_vs_earlier_mean == null ? "n/a" : fmtNum(h.amount_vs_earlier_mean) + "×"} (mean ${fmtNum(h.earlier_amount_mean)}, max ${fmtAmt(h.earlier_amount_max)})</dd>
+       <dt>Device brands seen</dt><dd>${esc((h.device_brands_seen || []).join(", ") || "none")}</dd><dt>Email domains seen</dt><dd>${esc((h.purchaser_email_domains_seen || []).join(", ") || "none")}</dd></dl>
+       <p class="meta">Key ${esc(h.entity_key)}</p>`;
+  renderEarlier(d.cases);
+}
+function renderEarlier(cases) {
+  $("earlier").innerHTML = cases && cases.length ? '<ul class="plain">' + cases.map((c) => `<li><a href="#" data-case="${esc(c.case_id)}">${esc(c.case_id)}</a>
+     <span class="meta">${esc(c.created_at)} · ${esc(c.path || "")} · ${c.decision ? esc(DECISION_LABEL[c.decision] || c.decision) : esc(c.status)}</span></li>`).join("") + "</ul>"
+    : '<p class="muted">None in FinGuard\'s case store.</p>';
+}
+$("earlier").addEventListener("click", async (e) => { const a = e.target.closest("a[data-case]"); if (!a) return; e.preventDefault();
+  try { const d = await api(`/api/cases/${a.dataset.case}`); showReport($("reportPanel"), d.case, d.markdown, d.decisions); $("reportCard").hidden = false; } catch (err) { $("runError").innerHTML = `<div class="err">${esc(err.message)}</div>`; } });
+$("openTxBtn").addEventListener("click", () => { const v = $("openTx").value.trim(); if (/^\d{7}$/.test(v)) location.hash = "#case/" + v; });
+$("openTx").addEventListener("keydown", (e) => { if (e.key === "Enter") $("openTxBtn").click(); });
+
+function timer(el, label) { const t0 = Date.now(); el.innerHTML = `<span class="spin"></span> ${label} 0 s`;
+  const h = setInterval(() => { el.innerHTML = `<span class="spin"></span> ${label} ${Math.floor((Date.now() - t0) / 1000)} s`; }, 500); return () => clearInterval(h); }
+
+$("runBtn").addEventListener("click", async () => {
+  if (S.running || !S.tx) return; S.running = true; $("runBtn").disabled = true; $("runError").innerHTML = "";
+  const stop = timer($("runState"), "Investigating…");
+  try {
+    const r = await api("/api/investigations", { method: "POST", body: { transaction_id: S.tx, request: $("request").value.trim() || undefined, llm: S.llm || undefined } });
+    $("runState").textContent = `Done in ${fmtNum(r.seconds, 1)} s.`;
+    const full = await api(`/api/cases/${r.case_id}`);
+    showReport($("reportPanel"), full.case, full.markdown, full.decisions); $("reportCard").hidden = false;
+    api(`/api/transactions/${S.tx}`).then((d) => renderEarlier(d.cases)).catch(() => {});
+  } catch (e) { $("runState").textContent = ""; $("runError").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+  finally { stop(); S.running = false; $("runBtn").disabled = false; }
+});
+
+/* ---------- report panel (case view and cases tab) ---------- */
+function chips(c) {
+  const p = c.policy || {}, out = [];
+  out.push(`<span class="chip">${esc(c.path === "orchestrated" ? "orchestrated by " + ((c.llm || {}).model || "LLM") : c.path)}</span>`);
+  if (c.outcome && c.outcome !== c.path) out.push(`<span class="chip">${esc(c.outcome.replace("_", " "))}</span>`);
+  if (c.seconds != null) out.push(`<span class="chip num">${fmtNum(c.seconds, 1)} s</span>`);
+  if (c.tool_calls != null) out.push(`<span class="chip num">${c.tool_calls} tool call(s), ${c.llm_calls || 0} LLM call(s)</span>`);
+  if (p.passed != null) out.push(`<span class="chip ${p.passed ? "ok" : "bad"}">evidence policy ${p.passed ? "passed" : "failed"}${p.claims != null ? ` · ${p.cited}/${p.claims} claims cited` : ""}${p.numbers ? ` · ${p.traceable}/${p.numbers} numbers traced` : ""}</span>`);
+  return `<div class="chips">${out.join("")}</div>` + (c.fallback_reason && c.path !== "orchestrated" ? `<p class="meta">Fallback reason: ${esc(c.fallback_reason)}</p>` : "");
+}
+function showReport(el, c, markdown, decisions) {
+  const canDecide = Boolean(c.transaction_id) && ["report", "tools_failed"].includes(c.outcome);   // decisions are about an alert
+  el.innerHTML = `${chips(c)}<article class="report">${md(markdown || c.message || "")}</article>
+    <div class="runrow"><a class="btn" href="/api/cases/${esc(c.case_id)}/report.md" download>Download report (.md)</a>
+    <a class="btn" href="/api/cases/${esc(c.case_id)}" target="_blank" rel="noopener">Open JSON</a>
+    ${c.transaction_id ? `<a class="btn" href="#case/${c.transaction_id}">Case view</a>` : ""}</div>
+    ${canDecide ? `<div style="margin-top:14px"><h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Analyst decision</h3>
+      <div class="decision"><select aria-label="Decision" data-k="decision"><option value="">Choose…</option>${Object.entries(DECISION_LABEL).map(([k, v]) => `<option value="${k}">${v}</option>`).join("")}</select>
+      <input type="text" data-k="analyst" maxlength="80" placeholder="Analyst name or role" aria-label="Analyst">
+      <textarea data-k="note" rows="2" maxlength="1000" placeholder="Note (optional)" aria-label="Note"></textarea></div>
+      <div class="runrow"><button class="btn primary" data-act="decide">Record decision</button><span class="muted" data-k="dstate" aria-live="polite"></span></div>
+      <div data-k="dlist"></div></div>` : ""}`;
+  const list = el.querySelector("[data-k=dlist]");
+  const renderDecisions = (ds) => { if (list) list.innerHTML = ds && ds.length ? '<ul class="plain">' + ds.map((d) => `<li><span class="tag ok">${esc(DECISION_LABEL[d.decision] || d.decision)}</span> ${esc(d.analyst)} <span class="meta">${esc(d.decided_at)}${d.note ? " · " + esc(d.note) : ""}</span></li>`).join("") + "</ul>" : ""; };
+  renderDecisions(decisions);
+  const btn = el.querySelector("[data-act=decide]");
+  if (btn) btn.addEventListener("click", async () => {
+    const get = (k) => el.querySelector(`[data-k=${k}]`).value.trim(); const st = el.querySelector("[data-k=dstate]");
+    if (!get("decision") || !get("analyst")) { st.textContent = "Choose a decision and give the analyst's name or role."; return; }
+    btn.disabled = true;
+    try { await api(`/api/cases/${c.case_id}/decision`, { method: "POST", body: { decision: get("decision"), analyst: get("analyst"), note: get("note") } });
+      const full = await api(`/api/cases/${c.case_id}`); renderDecisions(full.decisions); st.textContent = "Recorded.";
+    } catch (e) { st.textContent = e.message; } finally { btn.disabled = false; }
+  });
+}
+
+/* ---------- assistant ---------- */
+const SUGGEST = ["What does Visa dispute condition 10.4 cover?", "Which fraudulent payment transactions must payment service providers report under the EBA guidelines?", "What are the risk indicators of cyber-enabled fraud?"];
+function updateAbout() { $("aboutWrap").hidden = !S.tx; $("aboutText").textContent = S.tx ? `About transaction TX-${S.tx}` : ""; }
+function renderSuggest() {
+  const list = S.health && S.health.synthetic ? ["What should I check when the purchaser email domain is anonymous?", "How is the proxy entity formed?"] : SUGGEST;
+  $("suggest").innerHTML = list.map((q) => `<button class="chip" data-q="${esc(q)}">${esc(q)}</button>`).join("");
+}
+$("suggest").addEventListener("click", (e) => { const b = e.target.closest("[data-q]"); if (b) { $("ask").value = b.dataset.q; $("ask").focus(); } });
+$("askBtn").addEventListener("click", ask);
+$("ask").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(); } });
+async function ask() {
+  const msg = $("ask").value.trim(); if (!msg || S.running) return;
+  S.running = true; $("askBtn").disabled = true; $("ask").value = "";
+  const thread = $("thread");
+  thread.insertAdjacentHTML("beforeend", `<div class="msg user">${esc(msg)}</div>`);
+  const holder = document.createElement("div"); holder.className = "msg bot card"; thread.appendChild(holder);
+  const stop = timer(holder, "Working…");
+  try {
+    const body = { message: msg, llm: S.llm || undefined }; if (S.tx && $("about").checked) body.transaction_id = S.tx;
+    const r = await api("/api/chat", { method: "POST", body });
+    stop(); showReport(holder, r, r.markdown, []);
+  } catch (e) { stop(); holder.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+  finally { S.running = false; $("askBtn").disabled = false; holder.scrollIntoView({ block: "nearest" }); }
+}
+
+/* ---------- cases ---------- */
+async function loadCases() {
+  const c = S.cases;
+  let d;
+  try { d = await api(`/api/cases?limit=${c.limit}&offset=${c.offset}`); } catch (e) { $("caseRows").innerHTML = `<tr><td colspan="7"><div class="err">${esc(e.message)}</div></td></tr>`; return; }
+  $("casesSummary").textContent = `${fmtInt(d.total)} case(s) in FinGuard's case store, newest first.`;
+  $("caseRows").innerHTML = d.cases.length ? d.cases.map((r) => `<tr tabindex="0" data-case="${esc(r.case_id)}"><td class="num">${esc(r.case_id)}</td><td class="num">${esc(r.created_at)}</td>
+     <td class="num">${r.transaction_id ?? '<span class="muted">none</span>'}</td><td>${esc(r.request_type || "")}</td><td>${esc((r.outcome || "").replace("_", " "))}</td><td>${esc(r.path || "")}</td>
+     <td>${r.decision ? `<span class="tag ok">${esc(DECISION_LABEL[r.decision] || r.decision)}</span>` : `<span class="tag">${esc(r.status)}</span>`}</td></tr>`).join("")
+    : `<tr><td colspan="7" class="empty">No case yet: run an investigation from a case view or ask the assistant.</td></tr>`;
+  $("casesPage").textContent = `${d.total ? c.offset + 1 : 0}–${Math.min(c.offset + c.limit, d.total)} of ${fmtInt(d.total)}`;
+  $("cPrev").disabled = c.offset === 0; $("cNext").disabled = c.offset + c.limit >= d.total;
+}
+async function openCaseReport(id) {
+  $("casePanel").innerHTML = '<span class="spin"></span>';
+  try { const d = await api(`/api/cases/${id}`); showReport($("casePanel"), d.case, d.markdown, d.decisions); }
+  catch (e) { $("casePanel").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+$("caseRows").addEventListener("click", (e) => { const tr = e.target.closest("tr[data-case]"); if (tr) openCaseReport(tr.dataset.case); });
+$("caseRows").addEventListener("keydown", (e) => { const tr = e.target.closest("tr[data-case]"); if (tr && e.key === "Enter") openCaseReport(tr.dataset.case); });
+$("cPrev").addEventListener("click", () => { S.cases.offset = Math.max(0, S.cases.offset - S.cases.limit); loadCases(); });
+$("cNext").addEventListener("click", () => { S.cases.offset += S.cases.limit; loadCases(); });
+
+/* ---------- routing ---------- */
+function route() {
+  const [view, arg] = (location.hash.replace(/^#/, "") || "alerts").split("/");
+  const v = ["alerts", "case", "assistant", "cases"].includes(view) ? view : "alerts";
+  document.querySelectorAll(".view").forEach((s) => { s.hidden = s.id !== "view-" + v; });
+  document.querySelectorAll("nav.tabs a").forEach((a) => { if (a.dataset.view === v) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+  if (!S.health || !S.health.ready) return;
+  if (v === "alerts") loadAlerts();
+  if (v === "case") { if (arg && /^\d{7}$/.test(arg)) openCase(Number(arg)); else if (!S.tx) { $("caseEmpty").hidden = false; $("caseBody").hidden = true; } }
+  if (v === "cases") loadCases();
+}
+window.addEventListener("hashchange", route);
+document.querySelector('nav.tabs a[data-view=case]').addEventListener("click", (e) => { if (S.tx) { e.preventDefault(); location.hash = "#case/" + S.tx; } });
+
+(async function boot() {
+  route(); loadAlerts();
+  let h = await loadHealth();
+  while (!h.ready && h.status !== "error") { await new Promise((r) => setTimeout(r, 2500)); h = await loadHealth(); }
+  renderSuggest(); route();
+  setInterval(loadHealth, 30000);
+})();
+</script>
+</body>
+</html>
