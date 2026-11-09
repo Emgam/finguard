@@ -21,3 +21,5 @@ mlflow.db
 mlruns/
 mlartifacts/
 reports/monitoring/*.html
+# never commit Kaggle files placed inside the package folder
+src/finguard/data/raw/
