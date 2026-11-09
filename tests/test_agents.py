@@ -652,3 +652,46 @@ def test_scores_and_shap_are_computed_in_python_never_by_an_llm():
             assert "finguard.agents.llm" not in text and "make_llm" not in text and "urllib.request" not in text, f
     tools = (root / "agents" / "tools.py").read_text(encoding="utf-8")
     assert "agents.llm" not in tools and "make_llm" not in tools
+
+
+class _OllamaTags(BaseHTTPRequestHandler):
+    show_ok, models = False, []
+
+    def _send(self, code, obj):
+        data = json.dumps(obj).encode()
+        self.send_response(code)
+        self.send_header("content-type", "application/json")
+        self.send_header("content-length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def do_POST(self):
+        self.rfile.read(int(self.headers["content-length"]))
+        self._send(200, {"details": {}}) if _OllamaTags.show_ok else self._send(404, {"error": "model not found"})
+
+    def do_GET(self):
+        self._send(200, {"models": _OllamaTags.models})
+
+    def log_message(self, *a):
+        pass
+
+
+def test_ollama_status_finds_a_pulled_model_however_ollama_spells_it():
+    from finguard.agents.llm import llm_status
+    os.environ["NO_PROXY"] = os.environ["no_proxy"] = "127.0.0.1,localhost"
+    srv = HTTPServer(("127.0.0.1", 0), _OllamaTags)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    saved = _env_cleared(["OLLAMA_BASE_URL", "OLLAMA_MODEL"])
+    os.environ["OLLAMA_BASE_URL"] = f"http://127.0.0.1:{srv.server_address[1]}"
+    try:
+        _OllamaTags.show_ok = True
+        assert llm_status()["ollama"]["status"] == "ready"                       # /api/show knows the model
+        _OllamaTags.show_ok = False
+        _OllamaTags.models = [{"name": "registry.ollama.ai/library/Qwen2.5:3B-Instruct-Q4_K_M"}]
+        assert llm_status()["ollama"]["status"] == "ready"                       # found in the list, other spelling
+        _OllamaTags.models = [{"name": "llama3.2:latest", "model": "llama3.2:latest"}]
+        status = llm_status()["ollama"]["status"]
+        assert status.startswith("running, but the model is not pulled") and "llama3.2:latest" in status
+    finally:
+        _env_restore(saved)
+        srv.shutdown()

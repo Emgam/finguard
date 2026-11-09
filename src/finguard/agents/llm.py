@@ -447,14 +447,40 @@ def llm_status(timeout: float = 1.5) -> dict:
     groq = {"model": groq_model, "status": "key set" if _env("GROQ_API_KEY") else "GROQ_API_KEY not set"}
     base, model = ollama_base_url(), _env("OLLAMA_MODEL") or OLLAMA_DEFAULT_MODEL
     try:
-        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
-        with opener.open(f"{base}/api/tags", timeout=timeout) as r:
-            names = {m.get("name") for m in json.loads(r.read().decode("utf-8")).get("models", [])}
-        pulled = model in names or f"{model}:latest" in names
-        status = "ready" if pulled else f"running, but the model is not pulled: ollama pull {model}"
+        has, listed = _ollama_has(base, model, timeout)
+        status = "ready" if has else (f"running, but the model is not pulled: ollama pull {model} "
+                                      f"(Ollama lists: {', '.join(listed) or 'no models'})")
     except (urllib.error.URLError, OSError, ValueError):
         status = f"not reachable at {base} (start Ollama for the offline fallback)"
     return {"groq": groq, "ollama": {"model": model, "url": base, "status": status}}
+
+
+def _ollama_name(name: str | None) -> str:
+    """Compare Ollama model names loosely: case, registry prefix and the implicit :latest tag."""
+    n = (name or "").strip().lower()
+    for prefix in ("registry.ollama.ai/library/", "registry.ollama.ai/"):
+        if n.startswith(prefix):
+            n = n[len(prefix):]
+    return n if ":" in n else f"{n}:latest"
+
+
+def _ollama_has(base: str, model: str, timeout: float) -> tuple[bool, list[str]]:
+    """Whether Ollama has the model on this computer: asked with /api/show (the server's own answer),
+    then looked up in /api/tags (the local list). Returns the verdict and the names Ollama lists."""
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    req = urllib.request.Request(f"{base}/api/show", data=json.dumps({"model": model, "name": model}).encode("utf-8"),
+                                 method="POST", headers={"content-type": "application/json"})
+    try:
+        with opener.open(req, timeout=timeout):
+            return True, [model]
+    except urllib.error.HTTPError:
+        pass                                                     # 404: not by that name; check the list
+    with opener.open(f"{base}/api/tags", timeout=timeout) as r:
+        models = json.loads(r.read().decode("utf-8")).get("models") or []
+    listed = sorted({m.get("name") or m.get("model") for m in models if m.get("name") or m.get("model")})
+    wanted = _ollama_name(model)
+    found = any(_ollama_name(m.get(k)) == wanted for m in models for k in ("name", "model") if m.get(k))
+    return found, listed
 
 
 def make_llm(name: str | None = None):
