@@ -5,10 +5,12 @@ SHA-256, the data manifest's SHA-256, a code fingerprint (Git commit when availa
 hash of ``src/``), parameters, metrics and the gate report. Promotion to an alias needs a
 passing gate AND a named person's approval; nothing is promoted automatically.
 
-When the ``mlflow`` package is installed and ``MLFLOW_TRACKING_URI`` is set, ``register``
-also logs the run (parameters, metrics, the LightGBM model) and registers it in the MLflow
-Model Registry under ``FINGUARD_MLFLOW_MODEL`` (default "finguard-lgbm"); ``promote`` then
-sets the same alias there. This path was not exercised in the build environment (no MLflow).
+When MLflow is installed (``pip install -e ".[mlops]"``), ``register`` also logs the calibrated
+scorer (LightGBM + isotonic calibration + frozen bands, ``finguard/mlops/scorer_model.py``) and
+registers it as a version of ``finguard-fraud-scorer`` (``FINGUARD_MLFLOW_MODEL``); ``promote``
+sets the same alias there, with the approver as a version tag. The store defaults to
+``sqlite:///mlflow.db`` in the project (``MLFLOW_TRACKING_URI`` overrides it); see
+``finguard.mlops.tracking``. ``python -m finguard.mlops track sync`` mirrors entries made before.
 
     python -m finguard.registry register --name lgbm_numeric
     python -m finguard.registry promote MODEL_ID --alias champion --approved-by "Full Name"
@@ -19,7 +21,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import subprocess
 import time
 from pathlib import Path
@@ -96,40 +97,26 @@ def promote(model_id: str, alias: str, approved_by: str) -> dict:
     reg["aliases"][alias] = model_id
     reg["history"].append({"event": "promote", "alias": alias, "model_id": model_id, "previous": previous,
                            "approved_by": approved_by.strip(), "at": time.strftime("%Y-%m-%d %H:%M:%S")})
-    if entry.get("mlflow", {}).get("version"):
-        _mlflow_alias(alias, entry["mlflow"]["version"])
+    if not (entry.get("mlflow") or {}).get("version"):          # registered before MLflow was installed
+        res = _mlflow_register(entry, config.ROOT / entry["model_file"])
+        if res.get("version"):
+            entry["mlflow"] = {k: res.get(k) for k in ("status", "name", "version", "run_id")}
+    if (entry.get("mlflow") or {}).get("version"):
+        _mlflow_alias(alias, entry["mlflow"]["version"], approved_by.strip(), model_id)
     save(reg)
     return reg
 
 
 def _mlflow_register(entry: dict, model_file: Path) -> dict:
-    if not os.environ.get("MLFLOW_TRACKING_URI"):
-        return {"status": "skipped (MLFLOW_TRACKING_URI not set)"}
-    try:
-        import lightgbm as lgb
-        import mlflow
-        import mlflow.lightgbm
-    except ImportError:
-        return {"status": "skipped (mlflow not installed)"}
-    name = os.environ.get("FINGUARD_MLFLOW_MODEL", "finguard-lgbm")
-    with mlflow.start_run(run_name=entry["model_id"]) as run:
-        mlflow.log_params({k: v for k, v in entry["params"].items() if isinstance(v, (int, float, str, bool))})
-        for part in ("valid", "test"):
-            for k, v in (entry["metrics"].get(part) or {}).items():
-                if isinstance(v, (int, float)):
-                    mlflow.log_metric(f"{part}_{k.replace('@', '_at_').replace('%', 'pct')}", float(v))
-        mlflow.set_tags({"model_sha256": entry["model_sha256"], "code": entry["code"], "data_manifest": entry["data_manifest_sha256"]})
-        info = mlflow.lightgbm.log_model(lgb.Booster(model_file=str(model_file)), artifact_path="model", registered_model_name=name)
-    return {"status": "registered", "run_id": run.info.run_id, "name": name,
-            "version": getattr(info, "registered_model_version", None)}
+    from finguard.mlops import tracking
+    return tracking.register_model(entry, model_file)
 
 
-def _mlflow_alias(alias: str, version) -> None:
-    try:
-        from mlflow import MlflowClient
-        MlflowClient().set_registered_model_alias(os.environ.get("FINGUARD_MLFLOW_MODEL", "finguard-lgbm"), alias, str(version))
-    except Exception as exc:                                     # pragma: no cover - optional path
-        print(f"MLflow alias not set: {exc}")
+def _mlflow_alias(alias: str, version, approved_by: str | None = None, model_id: str | None = None) -> None:
+    from finguard.mlops import tracking
+    res = tracking.set_alias(alias, str(version), approved_by, model_id)
+    if not str(res.get("status", "")).startswith("alias"):
+        print(f"MLflow alias not set: {res.get('status')}")
 
 
 def main() -> None:

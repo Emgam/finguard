@@ -4,10 +4,54 @@ Decision-support prototype for card-not-present payment fraud review, built on t
 Fraud Detection dataset. **This repository is in Phase 5: a FastAPI service and an analyst dashboard
 (alert queue, case view, assistant, cases) in a Docker container, with GitHub Actions running the
 gates. Phases 1-4 built the data foundation, the calibrated model with reasons, the cited knowledge
-base and the LLM orchestrator whose reports are checked against an evidence policy in code.**
+base and the LLM orchestrator whose reports are checked against an evidence policy in code. An MLOps
+layer adds data contracts (Pandera), experiment tracking and a model registry (MLflow), a
+reproducible pipeline with data and model versioning (DVC) and drift monitoring (Evidently).**
 
 > IEEE-CIS has **no customer identifier**. All grouping of transactions in this project is a
 > heuristic **proxy entity** (card1 + addr1 + first-seen day), never a customer.
+
+## MLOps: contracts, tracking and registry, pipeline, monitoring
+
+```bash
+pip install -e ".[mlops]"                     # MLflow, Evidently, DVC (Pandera is a core dependency)
+python -m finguard.mlops check                # the four tools: installed, configured, working
+```
+
+| Tool | What it does here | Command | Output |
+| --- | --- | --- | --- |
+| **Pandera** | Data contracts between steps: raw files as read, the joined interim tables (join correctness, `day` / `rel_hour` derived from `TransactionDT`, split coverage, later file strictly later), the feature matrix (the model's exact 473 columns in order, float32, no infinities, entity and frequency features >= 0, integer category codes) and the model outputs (probability in [0, 1], score 1-99, band consistent with the frozen thresholds, calibration monotone). Errors fail; known-to-move properties (a new card network, the alert share of a later month) are warnings. | `python -m finguard.mlops contracts [--stage data\|model]` | `reports/tables/contracts_{data,model}.json` |
+| **MLflow** | One run per trained model, retrieval evaluation, agent evaluation and drift report (params, metrics, learning curve, artifacts, figures); the calibrated scorer (LightGBM + isotonic + bands, `mlops/scorer_model.py`) registered as `finguard-fraud-scorer`, with the `champion` alias set by the same human promotion step as the file registry. | `python -m finguard.mlops track sync` (backfill, idempotent), `mlflow ui --backend-store-uri sqlite:///mlflow.db` | `mlflow.db`, `mlruns/` (local, not in Git) |
+| **DVC** | The pipeline as 21 stages (`dvc.yaml`: ingest -> validate -> contracts -> features -> models -> reports -> contracts -> gate -> knowledge base -> agents -> monitoring -> metrics), params (`params.yaml`, `SPLIT_DAYS` / `RANDOM_SEED` from `config.py`), cached data and model files, metrics and plots. | `dvc dag`, `dvc repro`, `dvc metrics show`, `dvc plots show`, `dvc push` | `dvc.lock`, `.dvc/cache`, `reports/metrics/*.json` |
+| **Evidently** | Drift of readable inputs and of the calibrated score against the validation month (where calibration and thresholds were frozen): the test month and its weeks, Kaggle's unlabelled later file and its 30-day slices; FinGuard's own PSI as a cross-check; a stable / review / retrain-review decision (thresholds in `params.yaml`). | `python -m finguard.mlops drift [--fail-on retrain]` | `reports/monitoring/drift_*.html` (Evidently), `drift_*.summary.json`, `drift_trend.csv` |
+
+Where they are wired in: the data gate (`make validate`) runs the data contracts; `phase2 --stage
+features` refuses to cache a matrix that breaks its contract; `finguard.gate` fails without passing
+contracts for both the data and the model; `phase2`, `phase2b`, `rag evaluate` and `agents evaluate`
+log their runs to MLflow when it is installed (never failing the step); `registry register` and
+`registry promote` mirror to the MLflow registry; `tools/release_check.py` adds the contracts and
+the monitoring gates; CI's `mlops` job installs the three libraries, runs `mlops check --strict`, the
+MLOps tests (including a LightGBM scorer registered, aliased and reloaded) and `dvc dag`.
+
+Results on the IEEE-CIS data and the delivered model (`lgbm_numeric-v1`): all 11 contracts pass;
+the MLflow-registered champion reproduces the serving scorer exactly (raw score, probability and band
+on test rows); drift, reference = validation month: test month 1 of 15 inputs drifted
+(`R_emaildomain`), score PSI 0.010, alert share 5.6% against a plan of 5%, PR-AUC 0.580 against 0.659
+on the reference (the reference was used for early stopping, so a drop is expected; the review
+threshold is a 15% relative drop): **stable** for the month, while its second and third weeks reach
+only PR-AUC 0.54-0.55 and are flagged for review; later file 0 of 15 inputs drifted overall, but its
+last 30-day slice (days 362-394) shows 5 of 15: the slice to watch.
+
+First use of DVC on a machine that already has the outputs (nothing is retrained):
+
+```bash
+dvc init
+python -m finguard.mlops pipeline      # dvc.yaml checks, and which stages have all their outputs
+dvc commit -f <stages it lists>        # record them in dvc.lock
+dvc dag                                # the pipeline graph
+dvc status                             # what is out of date; `dvc repro` reruns only that
+dvc remote add -d store ../finguard-dvc-store && dvc push    # versioned copies of data and models
+```
 
 ## Phase 5: API, dashboard, CI/CD
 
@@ -15,7 +59,7 @@ base and the LLM orchestrator whose reports are checked against an evidence poli
 pip install -e ".[api]"                       # FastAPI, uvicorn, httpx
 python -m finguard.api serve                  # dashboard http://127.0.0.1:8000/  API docs /docs
 python -m finguard.api serve --world synthetic --llm scripted   # without the data: invented transactions
-python -m finguard.api demo --llm anthropic   # exit criterion: timed alert-to-report run (< 60 s)
+python -m finguard.api demo                   # exit criterion: timed alert-to-report run (< 60 s)
 python tools/release_check.py                 # every gate on the real data, model and index
 docker compose up --build -d                  # the container (mounts data/ and artifacts/)
 ```
@@ -54,9 +98,9 @@ the container unpickles the artifacts with the same versions.
 ## Phase 4: orchestrator and agents
 
 ```bash
-python -m finguard.agents investigate "Investigate alert TX-3554656" --llm anthropic
-python -m finguard.agents investigate "What does Visa dispute condition 10.4 cover?" --llm anthropic
-python -m finguard.agents evaluate --llm anthropic        # 20 scripted cases, orchestrated vs fallback
+python -m finguard.agents investigate "Investigate alert TX-3554656"          # LLM: auto (Groq, then Ollama)
+python -m finguard.agents investigate "What does Visa dispute condition 10.4 cover?"
+python -m finguard.agents evaluate                       # 20 scripted cases, orchestrated vs fallback
 ```
 
 | Piece | Where |
@@ -97,7 +141,8 @@ Budgets: 8 tool calls, 2 re-plans, 2 report drafts and `FINGUARD_AGENT_TIME_BUDG
 Exit criteria (Project Report v3.0): 100% evidence-policy compliance, 100% of numbers traceable, at
 least 90% of claims cited. With the scripted test model all three hold on the 20 cases
 (`reports/tables/phase4_agent_summary_scripted.json`); that checks the pipeline, not an LLM; the LLM
-evaluation is `python -m finguard.agents evaluate --llm anthropic`. Example reports:
+evaluation is `python -m finguard.agents evaluate --llm groq --cases c01-c10` (then `--resume`, for the
+free tier's daily quota). Example reports:
 `reports/cases_examples/`. Knowledge-base questions are scored against what the deployed retriever
 returned (`outcome_follows_evidence`); where the retriever disagrees with a case label, the case is
 listed under `retrieval_disagrees_with_label`: a knowledge-base (Phase 3) result that depends on the
@@ -150,7 +195,8 @@ the model is registered as `lgbm_numeric-v1`; promotion to champion is a human s
 | 4 | Agents: tools, orchestrator, investigation and report agents, evidence policy, fallback, traces | `src/finguard/agents/`, `python -m finguard.agents` |
 | 4 | 20 scripted cases, agent metrics, example reports | `cases/`, `reports/tables/phase4_*`, `reports/cases_examples/` |
 | 5 | API and dashboard, container, CI/CD, release check | `src/finguard/api/`, `Dockerfile`, `docker-compose.yml`, `.github/workflows/ci.yml`, `tools/release_check.py` |
-| 1-5 | Unit tests | `tests/` (107 tests; those needing the data, the artifacts, the index or the web packages skip without them) |
+| MLOps | Data contracts, MLflow tracking and registry, drift monitoring, DVC metrics and pipeline checks | `src/finguard/mlops/`, `dvc.yaml`, `params.yaml`, `reports/monitoring/`, `reports/metrics/` |
+| 1-5 | Unit tests | `tests/` (136 tests; those needing the data, the artifacts, the index, the web packages or the MLOps libraries skip without them) |
 
 | Notebook | Covers |
 | --- | --- |
@@ -218,7 +264,7 @@ src/finguard/
   config.py               paths, checksums, time split
   split.py                time-split schemes (main, 30-day label delay) and their checks
   phase2.py, phase2b.py   Phase 2 pipelines, stage by stage (resumable)
-  gate.py, registry.py    model quality gate; file-based model registry (MLflow optional)
+  gate.py, registry.py    model quality gate; file-based model registry (mirrored to MLflow when installed)
   data/                   schema, ingest (id-XX fix, join), validation
   eda/                    Phase 1 analysis helpers, visual style, figures 01-16
   features/normalize.py   browser / OS / device / email normalisers, amount decimals
@@ -238,10 +284,13 @@ src/finguard/
   rag/                    knowledge base: text, parse, chunk, index, retrieve, corpus, evaluate, tool, glossary
   agents/                 Phase 4: tools, LLM clients, agents, prompts, evidence policy, graph, reports, evaluation
   api/                    Phase 5: service (endpoints, contract), app (FastAPI), worlds, client, static/dashboard.html
+  mlops/                  contracts (Pandera), tracking + registry (MLflow), scorer_model (MLflow pyfunc), drift
+                          (Evidently), metrics (DVC metric files), pipeline (dvc.yaml checks), CLI (python -m finguard.mlops)
 corpus/                   registry.json, questions.jsonl (frozen), indicator_map.json, project documents in docs/
 cases/                    the 20 scripted agent cases
 tools/                    notebook build/run helpers, fallback test runner, release_check.py (every gate)
 Dockerfile, docker-compose.yml, .github/workflows/ci.yml   Phase 5 container and CI
+dvc.yaml, params.yaml     DVC pipeline (21 stages) and the MLOps settings it tracks
 artifacts/                Phase 2 outputs (models, predictions, SHAP families, model bundle), registry.json
 ```
 

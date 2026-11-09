@@ -1,0 +1,16 @@
+# Settings of the MLOps steps, tracked by DVC (dvc.yaml) and read by finguard.mlops.
+# The model's own settings stay in code: SPLIT_DAYS and RANDOM_SEED are DVC params read
+# straight from src/finguard/config.py, and the LightGBM parameters are in
+# src/finguard/models/lgbm.py (a dependency of the training stages).
+
+contracts:
+  feature_sample: 100000        # rows of the feature matrix checked by Pandera (the whole matrix is scanned for inf)
+
+monitoring:                     # finguard.mlops.drift: reference = the validation month
+  drift_share: 0.5              # dataset drift when at least this share of the monitored inputs drifted
+  drift_share_retrain: 0.75     # ... and a retrain review from this share
+  score_psi_review: 0.10        # PSI of the calibrated score: review from here
+  score_psi_retrain: 0.25       # ... retrain review from here
+  alert_share_planned: 0.05     # High + Medium = top 5% of validation traffic (analyst workload)
+  alert_share_tolerance: 0.5    # review when the alert share moves more than 50% from plan
+  pr_auc_drop_review: 0.15      # with labels: review when PR-AUC is 15% (relative) below the reference month

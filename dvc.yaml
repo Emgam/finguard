@@ -1,0 +1,489 @@
+# FinGuard reproducible pipeline (DVC). `dvc dag` draws it, `dvc repro` reruns only the stages
+# whose code, data or params changed, `dvc metrics show` / `dvc plots show` read the results.
+#
+# Outputs that Git already tracks (reports, info.json files, notebooks) are declared with
+# `cache: false`: DVC records their hashes in dvc.lock but leaves them to Git. Large derived
+# matrices (data/processed) are not cached either: they are rebuilt in minutes from the
+# interim tables. Cached in .dvc/cache (and pushed with `dvc push`): interim tables, model
+# files, predictions, the serving bundle, the knowledge-base index and the drift reports.
+#
+# First time on a machine that already has the outputs (no retraining):
+#   dvc init && python -m finguard.mlops pipeline     # which stages have all their outputs
+#   dvc commit -f                                       # record them in dvc.lock
+# The phase2 stages assume the selected encoding is "numeric" (artifacts/phase2/selection.json).
+
+stages:
+  ingest:
+    desc: raw Kaggle CSVs -> joined, fixed interim tables (identity names fixed, time index)
+    cmd: python -m finguard.data.ingest --check-md5
+    deps:
+      - data/raw/train_transaction.csv
+      - data/raw/train_identity.csv
+      - data/raw/test_transaction.csv
+      - data/raw/test_identity.csv
+      - src/finguard/data/ingest.py
+      - src/finguard/data/schema.py
+    outs:
+      - data/interim/train.parquet
+      - data/interim/test.parquet
+      - data/interim/manifest.json:
+          cache: false
+
+  validate:
+    desc: Phase 1 data-quality checks (exit 1 on a FAIL)
+    cmd: python -m finguard.data.validate
+    deps:
+      - data/raw/train_transaction.csv
+      - data/raw/train_identity.csv
+      - data/raw/test_transaction.csv
+      - data/raw/test_identity.csv
+      - src/finguard/data/validate.py
+    outs:
+      - reports/tables/validation_results.csv:
+          cache: false
+
+  contracts_data:
+    desc: Pandera contracts on the raw files and the interim tables (exit 1 on a failure)
+    cmd: python -m finguard.mlops contracts --stage data
+    deps:
+      - data/raw/train_transaction.csv
+      - data/raw/train_identity.csv
+      - data/raw/test_transaction.csv
+      - data/raw/test_identity.csv
+      - data/interim/train.parquet
+      - data/interim/test.parquet
+      - data/interim/manifest.json
+      - src/finguard/mlops/contracts.py
+    params:
+      - src/finguard/config.py:
+          - SPLIT_DAYS
+    outs:
+      - reports/tables/contracts_data.json:
+          cache: false
+
+  features:
+    desc: point-in-time feature matrices (codes as numbers and as categories), contract-checked
+    cmd: python -m finguard.phase2 --stage features
+    deps:
+      - data/interim/train.parquet
+      - reports/tables/contracts_data.json
+      - src/finguard/features
+      - src/finguard/models/dataset.py
+      - src/finguard/split.py
+      - src/finguard/eda/missingness.py
+    params:
+      - src/finguard/config.py:
+          - SPLIT_DAYS
+          - RANDOM_SEED
+      - params.yaml:
+          - contracts.feature_sample
+    outs:
+      - data/processed/main_numeric:
+          cache: false
+      - data/processed/main_category:
+          cache: false
+
+  lgbm:
+    desc: main LightGBM models, early-stopped on the validation month (test month only scored)
+    cmd: python -m finguard.phase2 --stage lgbm
+    deps:
+      - data/processed/main_numeric
+      - data/processed/main_category
+      - src/finguard/models/lgbm.py
+      - src/finguard/phase2.py
+    outs:
+      - artifacts/phase2/lgbm_numeric/model.txt
+      - artifacts/phase2/lgbm_numeric/preds.npz
+      - artifacts/phase2/lgbm_numeric/info.json:
+          cache: false
+      - artifacts/phase2/lgbm_numeric/columns.json:
+          cache: false
+      - artifacts/phase2/lgbm_category/model.txt
+      - artifacts/phase2/lgbm_category/preds.npz
+      - artifacts/phase2/lgbm_category/info.json:
+          cache: false
+      - artifacts/phase2/lgbm_category/columns.json:
+          cache: false
+
+  select:
+    desc: code encoding chosen on validation PR-AUC only
+    cmd: python -m finguard.phase2 --stage select
+    deps:
+      - artifacts/phase2/lgbm_numeric/info.json
+      - artifacts/phase2/lgbm_category/info.json
+    outs:
+      - artifacts/phase2/selection.json:
+          cache: false
+
+  lr:
+    desc: logistic-regression baseline
+    cmd: python -m finguard.phase2 --stage lr
+    deps:
+      - data/processed/main_numeric
+      - src/finguard/models/linear.py
+    outs:
+      - artifacts/phase2/lr/preds.npz
+      - artifacts/phase2/lr/info.json:
+          cache: false
+      - artifacts/phase2/lr/coefficients.csv:
+          cache: false
+
+  retrain:
+    desc: the selected configuration retrained with five other seeds (stability)
+    cmd: python -m finguard.phase2 --stage retrain
+    deps:
+      - artifacts/phase2/selection.json
+      - artifacts/phase2/lgbm_numeric/info.json
+      - data/processed/main_numeric
+      - src/finguard/models/lgbm.py
+    outs:
+      - artifacts/phase2/retrain_seed1/model.txt
+      - artifacts/phase2/retrain_seed1/preds.npz
+      - artifacts/phase2/retrain_seed1/info.json:
+          cache: false
+      - artifacts/phase2/retrain_seed1/columns.json:
+          cache: false
+      - artifacts/phase2/retrain_seed2/model.txt
+      - artifacts/phase2/retrain_seed2/preds.npz
+      - artifacts/phase2/retrain_seed2/info.json:
+          cache: false
+      - artifacts/phase2/retrain_seed2/columns.json:
+          cache: false
+      - artifacts/phase2/retrain_seed3/model.txt
+      - artifacts/phase2/retrain_seed3/preds.npz
+      - artifacts/phase2/retrain_seed3/info.json:
+          cache: false
+      - artifacts/phase2/retrain_seed3/columns.json:
+          cache: false
+      - artifacts/phase2/retrain_seed4/model.txt
+      - artifacts/phase2/retrain_seed4/preds.npz
+      - artifacts/phase2/retrain_seed4/info.json:
+          cache: false
+      - artifacts/phase2/retrain_seed4/columns.json:
+          cache: false
+      - artifacts/phase2/retrain_seed5/model.txt
+      - artifacts/phase2/retrain_seed5/preds.npz
+      - artifacts/phase2/retrain_seed5/info.json:
+          cache: false
+      - artifacts/phase2/retrain_seed5/columns.json:
+          cache: false
+
+  gap:
+    desc: label-delay run (training days 0-90 only)
+    cmd: python -m finguard.phase2 --stage gap
+    deps:
+      - artifacts/phase2/selection.json
+      - data/interim/train.parquet
+      - src/finguard/models/lgbm.py
+      - src/finguard/features
+    outs:
+      - data/processed/label_delay_30d_numeric:
+          cache: false
+      - artifacts/phase2/gap_numeric/preds.npz
+      - artifacts/phase2/gap_numeric/info.json:
+          cache: false
+
+  ablation:
+    desc: the selected configuration without the entity_* features
+    cmd: python -m finguard.phase2 --stage ablation
+    deps:
+      - artifacts/phase2/selection.json
+      - data/processed/main_numeric
+      - src/finguard/models/lgbm.py
+    outs:
+      - artifacts/phase2/ablation_no_entity/preds.npz
+      - artifacts/phase2/ablation_no_entity/info.json:
+          cache: false
+
+  shap:
+    desc: TreeSHAP reason families for alerted and sampled test rows (main model and retrains)
+    cmd: python -m finguard.phase2 --stage shap
+    deps:
+      - artifacts/phase2/lgbm_numeric/model.txt
+      - artifacts/phase2/lgbm_numeric/preds.npz
+      - artifacts/phase2/retrain_seed1/model.txt
+      - artifacts/phase2/retrain_seed2/model.txt
+      - artifacts/phase2/retrain_seed3/model.txt
+      - artifacts/phase2/retrain_seed4/model.txt
+      - artifacts/phase2/retrain_seed5/model.txt
+      - src/finguard/explain/reasons.py
+    outs:
+      - artifacts/phase2/shap/families.pkl
+
+  phase2b:
+    desc: novelty flags, Isolation Forest, baseline-gap analysis, strengthened logistic regression
+    cmd: python -m finguard.phase2b
+    deps:
+      - data/interim/train.parquet
+      - data/processed/main_numeric
+      - artifacts/phase2/lgbm_numeric/preds.npz
+      - src/finguard/phase2b.py
+      - src/finguard/features/novelty.py
+      - src/finguard/models/anomaly.py
+    outs:
+      - artifacts/phase2/novelty/preds.npz
+      - artifacts/phase2/novelty/info.json:
+          cache: false
+      - artifacts/phase2/iforest/preds.npz
+      - artifacts/phase2/iforest/info.json:
+          cache: false
+      - artifacts/phase2/iforest_feature/preds.npz
+      - artifacts/phase2/iforest_feature/info.json:
+          cache: false
+      - artifacts/phase2/lr_variants/info.json:
+          cache: false
+      - artifacts/phase2/lr_v2/preds.npz
+      - artifacts/phase2/lr_v2/info.json:
+          cache: false
+
+  phase2_report:
+    desc: notebooks 05-09 (calibration, bands, intervals, explanations, robustness) and the serving bundle
+    cmd:
+      - python tools/build_notebooks.py 05 06 07 08 09
+      - python tools/run_notebooks.py notebooks/05_split_features_baseline.ipynb notebooks/06_lightgbm_calibration_bands.ipynb notebooks/07_explanations.ipynb notebooks/08_robustness_and_scorecard.ipynb notebooks/09_phase2_additions.ipynb
+    deps:
+      - notebooks/src/05_split_features_baseline.py
+      - notebooks/src/06_lightgbm_calibration_bands.py
+      - notebooks/src/07_explanations.py
+      - notebooks/src/08_robustness_and_scorecard.py
+      - notebooks/src/09_phase2_additions.py
+      - artifacts/phase2/selection.json
+      - artifacts/phase2/lgbm_numeric/preds.npz
+      - artifacts/phase2/lr/preds.npz
+      - artifacts/phase2/retrain_seed1/preds.npz
+      - artifacts/phase2/gap_numeric/info.json
+      - artifacts/phase2/ablation_no_entity/info.json
+      - artifacts/phase2/shap/families.pkl
+      - artifacts/phase2/lr_v2/info.json
+      - artifacts/phase2/iforest_feature/info.json
+      - artifacts/phase2/novelty/info.json
+      - src/finguard/models/calibration.py
+      - src/finguard/evaluation
+    outs:
+      - artifacts/phase2/model_bundle.pkl
+      - notebooks/05_split_features_baseline.ipynb:
+          cache: false
+      - notebooks/06_lightgbm_calibration_bands.ipynb:
+          cache: false
+      - notebooks/07_explanations.ipynb:
+          cache: false
+      - notebooks/08_robustness_and_scorecard.ipynb:
+          cache: false
+      - notebooks/09_phase2_additions.ipynb:
+          cache: false
+      - reports/tables/phase2_split.csv:
+          cache: false
+      - reports/tables/phase2_feature_families.csv:
+          cache: false
+      - reports/tables/phase2_results.json:
+          cache: false
+      - reports/tables/phase2_bands.csv:
+          cache: false
+      - reports/tables/phase2_reliability.csv:
+          cache: false
+      - reports/tables/phase2_test_metrics.csv:
+          cache: false
+      - reports/tables/phase2_family_importance.csv:
+          cache: false
+      - reports/tables/phase2_feature_shap.csv:
+          cache: false
+      - reports/tables/phase2_reason_cards.csv:
+          cache: false
+      - reports/tables/phase2_reason_examples.txt:
+          cache: false
+      - reports/tables/phase2_seed_variance.csv:
+          cache: false
+      - reports/tables/phase2_explanations.json:
+          cache: false
+      - reports/tables/phase2_entity_groups.csv:
+          cache: false
+      - reports/tables/phase2_model_comparison.csv:
+          cache: false
+      - reports/tables/phase2_scorecard.csv:
+          cache: false
+      - reports/tables/phase2b_summary.json:
+          cache: false
+      - reports/figures/fig17_model_comparison.png:
+          cache: false
+      - reports/figures/fig18_precision_recall_curves.png:
+          cache: false
+      - reports/figures/fig19_reliability.png:
+          cache: false
+      - reports/figures/fig20_risk_bands.png:
+          cache: false
+      - reports/figures/fig21_weekly_performance.png:
+          cache: false
+      - reports/figures/fig22_new_vs_known_entities.png:
+          cache: false
+      - reports/figures/fig23_reason_family_importance.png:
+          cache: false
+      - reports/figures/fig24_reason_stability.png:
+          cache: false
+      - reports/figures/fig25_novelty_flags.png:
+          cache: false
+      - reports/figures/fig26_isolation_forest.png:
+          cache: false
+    plots:
+      - reports/tables/phase2_weekly.csv:
+          cache: false
+          x: first_day
+          y: pr_auc
+          title: Weekly PR-AUC, validation and test months
+
+  contracts_model:
+    desc: Pandera contracts on the feature matrix and on the model's validation / test outputs
+    cmd: python -m finguard.mlops contracts --stage model
+    deps:
+      - data/processed/main_numeric
+      - artifacts/phase2/selection.json
+      - artifacts/phase2/lgbm_numeric/columns.json
+      - artifacts/phase2/lgbm_numeric/preds.npz
+      - artifacts/phase2/model_bundle.pkl
+      - src/finguard/mlops/contracts.py
+    params:
+      - params.yaml:
+          - contracts.feature_sample
+    outs:
+      - reports/tables/contracts_model.json:
+          cache: false
+
+  gate:
+    desc: model quality gate (data, contracts, leakage, model, calibration, explainability); exit 1 blocks a release
+    cmd: python -m finguard.gate
+    deps:
+      - reports/tables/validation_results.csv
+      - reports/tables/contracts_data.json
+      - reports/tables/contracts_model.json
+      - reports/tables/phase2_results.json
+      - reports/tables/phase2_explanations.json
+      - reports/tables/phase2_feature_shap.csv
+      - artifacts/phase2/lgbm_numeric/info.json
+      - artifacts/phase2/lgbm_numeric/columns.json
+      - artifacts/phase2/lr_v2/info.json
+      - artifacts/registry.json
+      - src/finguard/gate.py
+    outs:
+      - artifacts/phase2/gate_report.json:
+          cache: false
+
+  glossary:
+    desc: feature and reason-code glossary (a knowledge-base document, hash recorded in the corpus registry)
+    cmd: python -m finguard.rag.glossary
+    deps:
+      - artifacts/phase2/lgbm_numeric/columns.json
+      - src/finguard/rag/glossary.py
+      - src/finguard/explain/reasons.py
+    outs:
+      - corpus/docs/finguard_feature_reason_glossary.md:
+          cache: false
+      - corpus/registry.json:            # edited in place (the glossary's hash): kept, not regenerated
+          cache: false
+          persist: true
+
+  knowledge_base:
+    desc: parse, chunk and index the registered documents, then evaluate retrieval on the frozen questions
+    cmd:
+      - python -m finguard.rag build
+      - python -m finguard.rag evaluate --note "dvc repro"
+    deps:
+      - corpus/registry.json
+      - corpus/docs
+      - corpus/questions.jsonl
+      - corpus/questions_frozen.json
+      - data/corpus/raw
+      - src/finguard/rag
+    outs:
+      - data/corpus/index
+      - reports/tables/phase3_retrieval_summary.csv:
+          cache: false
+      - reports/tables/phase3_retrieval_details.csv:
+          cache: false
+      - reports/tables/phase3_retrieval_results.json:
+          cache: false
+      - reports/tables/phase3_retrieval_runs.json:     # append-only run log
+          cache: false
+          persist: true
+
+  kb_report:
+    desc: notebook 10 (knowledge-base report)
+    cmd:
+      - python tools/build_notebooks.py 10
+      - python tools/run_notebooks.py notebooks/10_knowledge_base.ipynb
+    deps:
+      - notebooks/src/10_knowledge_base.py
+      - data/corpus/index
+      - reports/tables/phase3_retrieval_results.json
+      - reports/tables/phase3_retrieval_details.csv
+    outs:
+      - notebooks/10_knowledge_base.ipynb:
+          cache: false
+      - reports/tables/phase3_summary.json:
+          cache: false
+      - reports/figures/fig27_retrieval_variants.png:
+          cache: false
+      - reports/figures/fig28_abstention.png:
+          cache: false
+
+  agents_scripted:
+    desc: the 20 scripted cases on both paths with the deterministic test model (pipeline check, no LLM quota)
+    cmd: python -m finguard.agents evaluate --llm scripted --note "dvc repro"
+    deps:
+      - cases/scripted_cases.jsonl
+      - corpus/indicator_map.json
+      - data/corpus/index
+      - artifacts/phase2/model_bundle.pkl
+      - artifacts/phase2/lgbm_numeric/model.txt
+      - src/finguard/agents
+      - src/finguard/serving
+    outs:
+      - reports/tables/phase4_agent_cases_scripted.csv:
+          cache: false
+      - reports/tables/phase4_agent_summary_scripted.json:
+          cache: false
+
+  monitoring:
+    desc: Evidently drift reports (validation month vs test month and the later unlabelled file) and the decision
+    cmd: python -m finguard.mlops drift
+    deps:
+      - data/interim/train.parquet
+      - data/interim/test.parquet
+      - artifacts/phase2/lgbm_numeric/preds.npz
+      - artifacts/phase2/model_bundle.pkl
+      - src/finguard/mlops/drift.py
+    params:
+      - params.yaml:
+          - monitoring
+    outs:
+      - reports/monitoring/drift_test.html
+      - reports/monitoring/drift_later.html
+      - reports/monitoring/drift_test.summary.json:
+          cache: false
+      - reports/monitoring/drift_later.summary.json:
+          cache: false
+    metrics:
+      - reports/metrics/drift.json:
+          cache: false
+    plots:
+      - reports/monitoring/drift_trend.csv:
+          cache: false
+          x: start_day
+          y: drifted_share
+          title: Share of monitored inputs drifted (reference = validation month)
+
+  metrics:
+    desc: flat metric files for `dvc metrics show / diff` (model, retrieval, agents)
+    cmd: python -m finguard.mlops metrics
+    deps:
+      - artifacts/phase2/lgbm_numeric/info.json
+      - artifacts/phase2/gate_report.json
+      - reports/tables/phase2_results.json
+      - reports/tables/phase3_retrieval_results.json
+      - reports/tables/phase4_agent_summary_scripted.json
+      - src/finguard/mlops/metrics.py
+    metrics:
+      - reports/metrics/model.json:
+          cache: false
+      - reports/metrics/retrieval.json:
+          cache: false
+      - reports/metrics/agents.json:
+          cache: false

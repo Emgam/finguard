@@ -167,4 +167,7 @@ def run(orchestrated: Orchestrator, fallback: Orchestrator | None, cases: list[d
     out_dir.mkdir(parents=True, exist_ok=True)
     df.to_csv(table, index=False)
     (out_dir / f"phase4_agent_summary{tag}.json").write_text(json.dumps(payload, indent=1, default=str), encoding="utf-8")
+    if Path(out_dir).resolve() == Path(config.TABLE_DIR).resolve():
+        from finguard.mlops import tracking             # MLflow run when installed; never fails the evaluation
+        tracking.log_agents(payload, table)
     return payload

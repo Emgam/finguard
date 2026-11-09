@@ -67,6 +67,8 @@ def cmd_evaluate(a) -> None:
     payload = ev.write_report(res, index, frozen)
     if a.note:
         ev.log_run(payload, a.note)
+    from finguard.mlops import tracking                 # MLflow run when installed; never fails the evaluation
+    tracking.log_retrieval(payload, note=a.note)
     (corpus.INDEX_DIR / "abstention.json").write_text(json.dumps(res["abstention"] | {"chosen_variant": res["chosen_variant"]}, indent=1), encoding="utf-8")
     print(res["summary"].round(3).to_string(index=False))
     print(res["by_split"].round(3).to_string(index=False))

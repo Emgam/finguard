@@ -1,5 +1,7 @@
 data/raw/*
 !data/raw/.gitkeep
+!data/raw/*.dvc
+!data/raw/.gitignore
 data/interim/*
 !data/interim/.gitkeep
 __pycache__/
@@ -14,3 +16,8 @@ artifacts/**/*.pkl
 data/corpus/
 data/cases/
 .env
+# MLOps: MLflow store and artifacts (local), Evidently HTML reports (cached by DVC instead)
+mlflow.db
+mlruns/
+mlartifacts/
+reports/monitoring/*.html

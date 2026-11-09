@@ -17,3 +17,8 @@ tools
 finguard-phase*-tmp
 *.zip
 .env
+.dvc
+dvc.lock
+mlflow.db
+mlruns
+mlartifacts

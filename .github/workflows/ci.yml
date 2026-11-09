@@ -6,7 +6,10 @@
 #   lint        ruff (errors: syntax, undefined names, unused imports)
 #   tests       compile, prompt lock, unit tests on synthetic data: leakage rules, features, novelty
 #               flags, metrics, reasons, entity store, retrieval pipeline, agents and evidence policy,
-#               the API contract and a live alert-to-report run
+#               the API contract and a live alert-to-report run, the Pandera data contracts
+#   mlops       MLflow, Evidently and DVC installed: the four tools work together (mlops check), the
+#               registry round trip (a LightGBM scorer registered, aliased and reloaded), Evidently
+#               reports, and DVC itself parses dvc.yaml and builds the pipeline graph (dvc dag)
 #   container   deployment gate: build the image, start it with the synthetic demo world, wait for
 #               the health check, run the alert-to-report demo (must pass in under 60 s)
 name: ci
@@ -44,6 +47,29 @@ jobs:
       - name: Prompt versions match the lock
         run: python -m finguard.agents prompts
       - run: python -m pytest -q
+
+  mlops:
+    runs-on: ubuntu-latest
+    env:
+      FINGUARD_MLFLOW: auto
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: pip install -e ".[dev,mlops]"
+      - name: DVC repository (dvc init when .dvc is not committed yet)
+        run: |
+          git config user.email ci@example.invalid && git config user.name ci
+          [ -d .dvc ] || dvc init -q
+      - name: The four tools installed and working
+        run: python -m finguard.mlops check --strict
+      - name: MLOps tests (contracts, drift, tracking and registry, pipeline checks)
+        run: python -m pytest -q tests/test_mlops.py
+      - name: DVC parses dvc.yaml and builds the graph
+        run: dvc dag
 
   container:
     needs: [lint, tests]

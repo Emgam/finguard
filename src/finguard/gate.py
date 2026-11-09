@@ -5,7 +5,8 @@
 Checks, all computed from the saved Phase 1-2 outputs:
 
 | Gate          | Check                                                                              |
-| Data          | no FAIL in the Phase 1 data-quality checks                                         |
+| Data          | no FAIL in the Phase 1 data-quality checks; the data contracts passed (Pandera:    |
+|               | raw files, interim tables, feature matrix, model outputs; finguard.mlops.contracts)|
 | Leakage       | no forbidden or ID/time-like input; statistics fitted on training rows only;       |
 |               | time split ordered and disjoint                                                    |
 | Model         | test PR-AUC 95% entity-block interval entirely above the strongest baseline;       |
@@ -48,6 +49,9 @@ def run(name: str = "lgbm_numeric") -> dict:
     val = pd.read_csv(T / "validation_results.csv")
     n_fail = int((val["status"] == "FAIL").sum())
     check("Data", "Phase 1 data-quality checks", n_fail == 0, f"{n_fail} FAIL, {int((val['status'] == 'WARN').sum())} WARN")
+    from finguard.mlops import contracts
+    ok, detail = contracts.gate_check()
+    check("Data", "data contracts (Pandera): raw, interim, features, scores", ok, detail)
 
     cols = json.loads((ART / name / "columns.json").read_text(encoding="utf-8"))["columns"]
     bad = sorted(set(cols) & FORBIDDEN) + [c for c in cols if c.lower() in ID_LIKE or "customer" in c.lower()]

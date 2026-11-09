@@ -7,7 +7,7 @@ NB2B = notebooks/09_phase2_additions.ipynb
 NB3 = notebooks/10_knowledge_base.ipynb
 RUN_NB = $(shell command -v jupyter >/dev/null 2>&1 && echo "jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=-1" || echo "$(PY) tools/run_notebooks.py")
 
-.PHONY: install data validate notebooks eda eda-fallback test all all-phase2 phase2 phase2-notebooks phase2-fallback phase2b phase2b-notebook gate glossary kb kb-eval kb-notebook all-phase3 agents-eval agents-demo serve serve-demo demo release-check docker-up docker-demo
+.PHONY: install data validate notebooks eda eda-fallback test all all-phase2 phase2 phase2-notebooks phase2-fallback phase2b phase2b-notebook gate glossary kb kb-eval kb-notebook all-phase3 agents-eval agents-demo serve serve-demo demo release-check docker-up docker-demo install-mlops mlops-check contracts contracts-model drift track-sync mlflow-ui metrics pipeline dvc-dag dvc-repro
 
 install:            ## editable install with dev tools
 	$(PY) -m pip install -e ".[dev]"
@@ -15,8 +15,9 @@ install:            ## editable install with dev tools
 data:               ## raw CSVs -> joined, fixed tables in data/interim (+ checksums)
 	$(PY) -m finguard.data.ingest --check-md5
 
-validate:           ## data-quality checks; exits 1 on any FAIL (use in CI)
+validate:           ## data-quality checks and the data contracts (Pandera); exits 1 on any FAIL
 	$(PY) -m finguard.data.validate
+	$(PY) -m finguard.mlops contracts --stage data
 
 notebooks:          ## regenerate .ipynb files from notebooks/src/*.py
 	$(PY) tools/build_notebooks.py
@@ -96,3 +97,39 @@ docker-up:          ## Phase 5: build and start the container (real world; mount
 
 docker-demo:        ## Phase 5: the container on the synthetic world, as in CI
 	FINGUARD_WORLD=synthetic FINGUARD_LLM=scripted FINGUARD_INSTALL_KB=false docker compose up --build -d --wait
+
+
+# --------------------------------------------------------------------------- MLOps
+install-mlops:      ## MLflow, Evidently, DVC (Pandera is a core dependency)
+	$(PY) -m pip install -e ".[dev,api,mlops]"
+
+mlops-check:        ## are the four tools installed, configured and working?
+	$(PY) -m finguard.mlops check
+
+contracts:          ## Pandera contracts: raw files, interim tables, feature matrix, model outputs
+	$(PY) -m finguard.mlops contracts
+
+contracts-model:    ## only the feature-matrix and model-output contracts (after phase2 + notebooks)
+	$(PY) -m finguard.mlops contracts --stage model
+
+drift:              ## Evidently drift reports (validation month vs test month and the later file)
+	$(PY) -m finguard.mlops drift
+
+track-sync:         ## record every saved result in MLflow (idempotent) and mirror the model registry
+	$(PY) -m finguard.mlops track sync
+
+mlflow-ui:          ## MLflow UI on http://127.0.0.1:5000
+	mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5000
+
+metrics:            ## flat metric files for `dvc metrics show`
+	$(PY) -m finguard.mlops metrics
+
+pipeline:           ## dvc.yaml checks; which stages already have their outputs (for `dvc commit`)
+	$(PY) -m finguard.mlops pipeline
+
+dvc-dag:            ## draw the pipeline
+	dvc dag
+
+dvc-repro:          ## rerun only the stages whose code, data or params changed
+	dvc repro
+

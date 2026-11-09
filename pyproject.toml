@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "finguard"
 version = "0.1.0"
-description = "FinGuard AI: decision-support prototype for card-not-present payment fraud review (Phase 1: data; Phase 2: models; Phase 3: knowledge base; Phase 4: agents; Phase 5: API, dashboard, CI/CD)"
+description = "FinGuard AI: decision-support prototype for card-not-present payment fraud review (Phase 1: data; Phase 2: models; Phase 3: knowledge base; Phase 4: agents; Phase 5: API, dashboard, CI/CD; MLOps: Pandera, MLflow, DVC, Evidently)"
 requires-python = ">=3.10"
 dependencies = [
     "pandas>=2.2",
@@ -17,11 +17,13 @@ dependencies = [
     "lightgbm>=4.3",
     "pdfplumber>=0.10",
     "jsonschema>=4.18",
+    "pandera[pandas]>=0.30",                 # data contracts (finguard.mlops.contracts); 0.30+ supports pandas 3
+    "pyyaml>=6",                             # params.yaml and dvc.yaml
 ]
 
 [project.optional-dependencies]
 kb = ["sentence-transformers>=2.7"]          # dense embeddings and cross-encoder re-ranking (optional)
-mlops = ["mlflow>=2.12"]
+mlops = ["mlflow>=3.5,<4", "evidently>=0.7.20,<0.8", "dvc>=3.60,<4"]   # tracking + registry, drift reports, pipeline
 agents = ["langgraph>=0.2"]                  # the orchestration graph on LangGraph (a built-in engine runs without it)
 api = ["fastapi>=0.110", "uvicorn>=0.29", "httpx>=0.27"]   # Phase 5 API and dashboard (httpx: the test client)
 dev = ["jupyter>=1.0", "nbconvert>=7", "pytest>=8", "ruff>=0.5", "reportlab>=4.0"]   # reportlab: PDF parser tests

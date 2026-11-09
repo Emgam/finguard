@@ -6,11 +6,16 @@ record: reports/tables/phase5_release_check.json. Exit code 1 if any gate fails.
 
     python tools/release_check.py                       # all gates
     python tools/release_check.py --llm anthropic       # demo with a real LLM (default: FINGUARD_LLM)
-    python tools/release_check.py --skip tests          # skip a gate (data, model, prompts, tests, deployment)
+    python tools/release_check.py --skip tests          # skip a gate (data, contracts, model, monitoring, prompts,
+                                                        # tests, deployment)
 
 | Gate        | Command                                                         | Blocks the release if   |
 | data        | python -m finguard.data.validate                                | a data check FAILS      |
-| model       | python -m finguard.gate (leakage, model, calibration, SHAP)     | the model gate fails    |
+| contracts   | python -m finguard.mlops contracts (Pandera: raw, interim,      | a contract fails        |
+|             | features, model outputs)                                        |                         |
+| model       | python -m finguard.gate (contracts, leakage, model, calibration,| the model gate fails    |
+|             | SHAP)                                                           |                         |
+| monitoring  | python -m finguard.mlops drift --fail-on retrain (Evidently)    | a retrain signal        |
 | prompts     | python -m finguard.agents prompts                               | a prompt changed without a version bump |
 | tests       | python -m pytest -q (with the real-data retrieval and agent cases) | any test fails       |
 | deployment  | serve the API, health check, alert-to-report demo               | not ready, or the demo fails or takes 60 s or more |
@@ -77,11 +82,14 @@ def deployment(llm: str | None, port: int, max_seconds: float) -> dict:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--llm", default=os.environ.get("FINGUARD_LLM"), help="LLM for the deployment demo")
-    ap.add_argument("--skip", nargs="*", default=[], choices=["data", "model", "prompts", "tests", "deployment"])
+    ap.add_argument("--skip", nargs="*", default=[],
+                    choices=["data", "contracts", "model", "monitoring", "prompts", "tests", "deployment"])
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--max-seconds", type=float, default=60.0)
     a = ap.parse_args()
-    gates = [("data", [PY, "-m", "finguard.data.validate"], 3600), ("model", [PY, "-m", "finguard.gate"], 3600),
+    gates = [("data", [PY, "-m", "finguard.data.validate"], 3600), ("contracts", [PY, "-m", "finguard.mlops", "contracts"], 3600),
+             ("model", [PY, "-m", "finguard.gate"], 3600),
+             ("monitoring", [PY, "-m", "finguard.mlops", "drift", "--fail-on", "retrain"], 3600),
              ("prompts", [PY, "-m", "finguard.agents", "prompts"], 120), ("tests", [PY, "-m", "pytest", "-q"], 7200)]
     results = [run(n, c, t) for n, c, t in gates if n not in a.skip]
     if "deployment" not in a.skip:

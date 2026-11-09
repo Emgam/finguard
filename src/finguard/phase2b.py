@@ -46,6 +46,8 @@ def _write(d: Path, info: dict, arrays: dict | None = None) -> None:
     if arrays is not None:
         np.savez_compressed(d / "preds.npz", **arrays)
     (d / "info.json").write_text(json.dumps(info, indent=1, default=float), encoding="utf-8")
+    from finguard.mlops import tracking                 # MLflow run when installed; never fails the stage
+    tracking.log_phase2_model(d.name)
 
 
 def _done(d: Path, force: bool) -> bool:

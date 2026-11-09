@@ -97,6 +97,15 @@ def _fit_and_save(name: str, fs: dataset.FeatureSet, force: bool, save_model: bo
             json.dump({"columns": model.columns, "categorical": model.categorical}, f)
     _write(d, info, preds)
     log(f"{name}: best_iter={model.best_iteration} valid PR-AUC={info['valid']['pr_auc']:.4f} ({model.seconds:.0f}s)")
+    _track(name)
+
+
+def _track(name: str) -> None:
+    """Record the run in MLflow when it is installed (finguard.mlops.tracking; never fails the stage)."""
+    from finguard.mlops import tracking
+    res = tracking.log_phase2_model(name)
+    if res.get("run_id"):
+        log(f"{name}: MLflow run {res['run_id'][:8]} ({res['status']})")
 
 
 # --------------------------------------------------------------------------- stages
@@ -104,8 +113,21 @@ def stage_features(force: bool) -> None:
     for codes in ("numeric", "category"):
         if force or not (dataset.cache_dir("main", codes) / "X.npy").exists():
             log(f"features main/{codes}")
-            dataset.save(dataset.build("main", codes), codes)
+            fs = dataset.build("main", codes)
+            _check_contract(fs, codes)
+            dataset.save(fs, codes)
+            del fs
             gc.collect()
+
+
+def _check_contract(fs: dataset.FeatureSet, codes: str) -> None:
+    """Feature-matrix contract (Pandera) before the matrix is cached and used for training."""
+    from finguard.mlops import contracts
+    if not contracts.available():
+        log(f"features main/{codes}: contract not checked (pandera not installed)")
+        return
+    res = contracts.check_features(fs, raise_on_fail=True)
+    log(f"features main/{codes}: contract passed on {res['rows']:,} sampled rows, {len(res['warnings'])} warning(s)")
 
 
 def stage_lgbm(force: bool) -> None:
